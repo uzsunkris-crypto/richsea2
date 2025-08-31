@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RichSea — Academy</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="ocean" id="ocean">
+  <div class="ray ray-1"></div>
+  <div class="ray ray-2"></div>
+  <div class="ray ray-3"></div>
+  <div class="parallax layer1"></div>
+  <div class="parallax layer2"></div>
+  <div class="parallax layer3"></div>
+</div>
+  <div class="ocean" id="ocean"><div class="ray ray-1"></div><div class="ray ray-2"></div><div class="ray ray-3"></div><div class="parallax layer1"></div><div class="parallax layer2"></div><div class="parallax layer3"></div></div>
+
+  <header class="nav-wrap">
+    <nav class="navbar">
+      <a href="index.html" class="brand"><img src="images/Richsealogo.png" class="logo" alt=""><span class="brand-name">$RICHSEA</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li><li><a href="community.html">Community</a></li><li><a href="dashboard.html">Dashboard</a></li><li><a href="news.html">News</a></li><li><a href="about.html">About</a></li><li><a href="tokenomics.html">Tokenomics</a></li><li><a class="active" href="academy.html">Academy</a></li><li><a href="contest.html">Contest</a></li>
+      </ul>
+      <a class="btn btn-pill btn-primary" href="app.apk">Download App</a>
+    </nav>
+  </header>
+
+  <section class="page-hero with-avatar">
+    <div class="hero-ava">
+      <lottie-player src="animations/news.json" background="transparent" speed="1" style="width:160px;height:160px" loop autoplay></lottie-player>
+    </div>
+    <div>
+      <h1 class="grad">RichSea Academy</h1>
+      <p class="muted">Clear, practical learning paths that help you understand SocialFi, navigate risk, and build durable strategies.</p>
+    </div>
+  </section>
+
+  <section class="grid-3">
+    <article class="card glass"><h3>SocialFi Basics</h3><p>Understand how social graphs meet token economies, and why incentives matter.</p></article>
+    <article class="card glass"><h3>Getting Started</h3><p>Create your profile, explore the app, and learn how to earn responsibly.</p></article>
+    <article class="card glass"><h3>Risk & Security</h3><p>Best practices for keys, wallets, and evaluating opportunities.</p></article>
+    <article class="card glass"><h3>Strategies</h3><p>Long-term participation, compounding rewards, and portfolio thinking.</p></article>
+    <article class="card glass"><h3>Community</h3><p>Participate in feedback loops, AMAs, and governance signals.</p></article>
+    <article class="card glass"><h3>Glossary</h3><p>Plain-English definitions for common crypto & SocialFi terms.</p></article>
+  </section>
+
+  <footer class="abyss">
+    <div class="ground"><div class="ground"><div class="footer-links"></div></div><div class="creature crab"></div><div class="creature angler"></div><div class="creature jelly"></div>
+    <div class="footer-links"><div><h5>Explore</h5><a href="news.html">News</a><a href="contest.html">Contest</a></div><div><h5>Community</h5><a href="https://x.com/RICH_SEA1" target="_blank">Twitter</a><a href="https://t.me/RichSea001" target="_blank">Telegram</a></div><div><h5>App</h5><a href="dashboard.html">Dashboard</a><a href="app.apk">Download App</a></div></div>
+  </footer>
+
+  <button class="chat-fab" id="chatFab" aria-label="Open chatbot">
+  <span class="bot-face"><span id="botMouth" class="bot-mouth"></span></span>
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+  <div class="chat-head">
+    <div class="chat-title">
+      <span>🤖</span>
+      <h4 id="chatTitle" style="margin:0">RichSea Assistant</h4>
+    </div>
+    <div class="chat-voice">
+      <button id="voiceFemale" class="voice-chip">Female</button>
+      <button id="voiceMale" class="voice-chip">Male</button>
+      <button id="soundToggle" class="voice-chip" title="Toggle sound">🔊</button>
+      <button id="chatClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody" aria-live="polite"></div>
+  <div class="chat-input">
+    <input id="chatText" type="text" placeholder="Ask about RichSea…" />
+    <button id="chatSend" class="btn btn-primary">Send</button>
+  </div>
+</div>
+</body>
+</html>

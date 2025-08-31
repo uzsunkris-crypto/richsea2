@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RichSea — Ocean of Opportunity</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="ocean" id="ocean">
+  <div class="ray ray-1"></div>
+  <div class="ray ray-2"></div>
+  <div class="ray ray-3"></div>
+  <div class="parallax layer1"></div>
+  <div class="parallax layer2"></div>
+  <div class="parallax layer3"></div>
+</div>
+  <!-- Ocean BG (bubbles, rays, parallax handled by CSS/JS) -->
+  <div class="ocean" id="ocean">
+    <div class="ray ray-1"></div><div class="ray ray-2"></div><div class="ray ray-3"></div>
+    <div class="parallax layer1"></div><div class="parallax layer2"></div><div class="parallax layer3"></div>
+  </div>
+
+  <!-- Sticky Header -->
+  <header class="nav-wrap">
+    <nav class="navbar">
+      <a href="index.html" class="brand">
+        <img src="images/Richsealogo.png" alt="RichSea logo" class="logo" />
+        <span class="brand-name">$RICHSEA</span>
+      </a>
+      <ul class="nav-links">
+        <li><a class="active" href="index.html">Home</a></li>
+        <li><a href="community.html">Community</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="academy.html">Academy</a></li>
+        <li><a href="contest.html">Contest</a></li>
+      </ul>
+      <a class="btn btn-pill btn-primary" href="app.apk">Download App</a>
+    </nav>
+  </header>
+<div class="ticker-bar" aria-live="polite">
+  <div class="ticker-inner" id="ticker">
+    <div class="spinner" aria-label="Loading prices"></div>
+  </div>
+</div>
+<section class="card glass token-widget">
+  <h2>RICHSEA Live</h2>
+  <div class="tw-row">
+    <div class="tw-stat"><label>Price (USD)</label><div id="rsPrice" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Change</label><div id="rsChange" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>Market Cap</label><div id="rsMcap" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Volume</label><div id="rsVol" class="stat-value">—</div></div>
+  </div>
+  <div class="tw-actions">
+    <button class="btn btn-ghost" id="refreshPrices">Refresh</button>
+    <code class="contract">CA: <span id="contractCopy" title="Click to copy">0xb93d116A1CB1AEE03A64053542Ec966368652873</span></code>
+  </div>
+</section>
+  <!-- Section 1: Hero -->
+  <section class="hero">
+    <h1 class="welcome">
+      <span class="welcome-badge">WELCOME TO</span>
+      <span class="grad mega">RICHSEA</span>
+    </h1>
+    <p class="subtitle">Dive into the future of DeFi with RichSea.</p>
+    <div class="hero-cta">
+      <a href="#about" class="btn btn-primary">Get Started</a>
+    </div>
+    <div class="hero-lottie">
+      <lottie-player src="animations/dashboard.json" background="transparent" speed="1" style="width:320px;height:320px" loop autoplay></lottie-player>
+    </div>
+  </section>
+
+  <!-- Section 2: About (SocialFi) -->
+  <section id="about" class="feature">
+    <div class="feature-media">
+      <lottie-player src="animations/community.json" background="transparent" speed="1" style="width:320px;height:320px" loop autoplay></lottie-player>
+    </div>
+    <div class="feature-copy">
+      <h3>Building wealth through SocialFi</h3>
+      <p>RichSea is a SocialFi project that blends social media and finance so users can interact, build community, and unlock financial opportunities.</p>
+      <ul class="list">
+        <li><strong>Key features:</strong> SocialFi for community & growth; token rewards; opportunities to earn.</li>
+        <li><strong>Benefits:</strong> Wealth creation, social engagement, rewards in TWD & BFT.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 3: Tokenomics Preview -->
+  <section class="card glass token-widget">
+
+    <h2>Tokenomics</h2>
+    <section id="tokenPieWrap" class="glass card">
+  <canvas id="tokenPie"></canvas>
+</section>
+    <p class="muted">A balanced allocation designed for long-term sustainability and community incentives.</p>
+    <div class="tw-row">
+      <div class="tw-stat"><label>Liquidity</label><div class="stat-value">40%</div></div>
+      <div class="tw-stat"><label>Farming Rewards</label><div class="stat-value">30%</div></div>
+      <div class="tw-stat"><label>Treasury & Growth</label><div class="stat-value">20%</div></div>
+      <div class="tw-stat"><label>Team (Vested)</label><div class="stat-value">10%</div></div>
+    </div>
+    <div class="tw-actions">
+      <a class="btn btn-ghost" href="tokenomics.html">Explore Full Tokenomics</a>
+      <code class="contract">CA:
+        <span id="contractCopyHome" title="Click to copy">0xb93d116A1CB1AEE03A64053542Ec966368652873</span>
+      </code>
+    </div>
+  </section>
+
+  <!-- Section 4: News Preview (glowing cards + auto slide powered by app.js) -->
+   <section class="news-rail">
+  <div class="news-track">
+    <article class="news-card glow">
+      <h4>Dev Update #12</h4>
+      <div class="news-meta"><span>12 Aug</span><span>•</span><span>Announcement</span></div>
+      <p>Farming v2 parameters updated with improved rewards.</p>
+      <div class="news-actions">
+        <button class="btn btn-ghost">Read</button>
+      </div>
+    </article>
+    <!-- Duplicate more .news-card items -->
+  </div>
+</section>
+
+<section class="videos-rail">
+  <div class="videos-track">
+    <article class="video-card" data-yt="dQw4w9WgXcQ" data-title="What is RichSea?"></article>
+    <article class="video-card" data-yt="ScMzIvxBSi4" data-title="Tokenomics Explained"></article>
+  </div>
+</section>
+
+  <section class="news-preview">
+    <h2>RichSea Updates</h2>
+    <div class="news-slider" id="newsSlider">
+      <article class="news-card glow">Mainnet dashboard optimizations are live.</article>
+      <article class="news-card glow">Community milestone: 50k members reached.</article>
+      <article class="news-card glow">$RICHSEA listing discussions progressing.</article>
+      <article class="news-card glow">Contest season returns next week.</article>
+      <article class="news-card glow">Treasury transparency report published.</article>
+      <article class="news-card glow">Academy adds SocialFi strategy lessons.</article>
+      <article class="news-card glow">New rewards in TWD & BFT enabled.</article>
+      <article class="news-card glow">Security review & audits scheduled.</article>
+    </div>
+    <div class="news-cta">
+      <a class="btn btn-primary" href="news.html">Open News Center</a>
+    </div>
+  </section>
+
+  <!-- Footer (glowing abyss, creatures, socials) -->
+  <footer class="abyss">
+    <div class="ground"><div class="footer-links"></div>
+    
+
+    <div class="creature crab" aria-hidden="true"></div>
+    <div class="creature angler" aria-hidden="true"></div>
+    <div class="creature jelly" aria-hidden="true"></div>
+
+
+    <div class="footer-links">
+      <div>
+        <h5>Explore</h5>
+        <a href="news.html">News</a>
+        <a href="academy.html">Academy</a>
+        <a href="contest.html">Contest</a>
+      </div>
+      <div>
+        <h5>Community</h5>
+        <a href="https://x.com/RICH_SEA1" target="_blank">Twitter</a>
+        <a href="https://t.me/RichSea001" target="_blank">Telegram</a>
+      </div>
+      <div>
+        <h5>App</h5>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="app.apk">Download App</a>
+        <span class="muted">BSC • $RICHSEA</span>
+      </div>
+    </div>
+  </footer>
+
+  <button class="chat-fab" id="chatFab" aria-label="Open chatbot">
+  <span class="bot-face"><span id="botMouth" class="bot-mouth"></span></span>
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+  <div class="chat-head">
+    <div class="chat-title">
+      <span>🤖</span>
+      <h4 id="chatTitle" style="margin:0">RichSea Assistant</h4>
+    </div>
+    <div class="chat-voice">
+      <button id="voiceFemale" class="voice-chip">Female</button>
+      <button id="voiceMale" class="voice-chip">Male</button>
+      <button id="soundToggle" class="voice-chip" title="Toggle sound">🔊</button>
+      <button id="chatClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody" aria-live="polite"></div>
+  <div class="chat-input">
+    <input id="chatText" type="text" placeholder="Ask about RichSea…" />
+    <button id="chatSend" class="btn btn-primary">Send</button>
+  </div>
+</div>
+
+
+
+  <script>
+    // copy contract on the home widget
+    document.addEventListener('DOMContentLoaded', () => {
+      const cc = document.getElementById('contractCopyHome');
+      if(cc){
+        cc.addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText(cc.textContent.trim()); cc.title='Copied!'; setTimeout(()=>cc.title='Click to copy',1200);}catch{}
+        });
+      }
+    });
+  </script>
+  
+</body>
+</html>

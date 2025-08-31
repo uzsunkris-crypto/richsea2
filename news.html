@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RichSea — News</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="ocean" id="ocean">
+  <div class="ray ray-1"></div>
+  <div class="ray ray-2"></div>
+  <div class="ray ray-3"></div>
+  <div class="parallax layer1"></div>
+  <div class="parallax layer2"></div>
+  <div class="parallax layer3"></div>
+</div>
+  <div class="ocean" id="ocean"><div class="ray ray-1"></div><div class="ray ray-2"></div><div class="ray ray-3"></div><div class="parallax layer1"></div><div class="parallax layer2"></div><div class="parallax layer3"></div></div>
+
+  <header class="nav-wrap">
+    <nav class="navbar">
+      <a href="index.html" class="brand"><img src="images/Richsealogo.png" class="logo" alt=""><span class="brand-name">$RICHSEA</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li><li><a href="community.html">Community</a></li><li><a href="dashboard.html">Dashboard</a></li><li><a class="active" href="news.html">News</a></li><li><a href="about.html">About</a></li><li><a href="tokenomics.html">Tokenomics</a></li><li><a href="academy.html">Academy</a></li><li><a href="contest.html">Contest</a></li>
+      </ul>
+      <a class="btn btn-pill btn-primary" href="app.apk">Download App</a>
+    </nav>
+  </header>
+<div class="ticker-bar" aria-live="polite">
+  <div class="ticker-inner" id="ticker">
+    <div class="spinner" aria-label="Loading prices"></div>
+  </div>
+</div>
+<section class="card glass token-widget">
+  <h2>RICHSEA Live</h2>
+  <div class="tw-row">
+    <div class="tw-stat"><label>Price (USD)</label><div id="rsPrice" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Change</label><div id="rsChange" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>Market Cap</label><div id="rsMcap" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Volume</label><div id="rsVol" class="stat-value">—</div></div>
+  </div>
+  <div class="tw-actions">
+    <button class="btn btn-ghost" id="refreshPrices">Refresh</button>
+    <code class="contract">CA: <span id="contractCopy" title="Click to copy">0xb93d116A1CB1AEE03A64053542Ec966368652873</span></code>
+  </div>
+</section>
+  <section class="page-hero">
+    <h1 class="grad">RichSea Newsroom</h1>
+    <p class="muted">Official updates, dev notes, milestones, and partner announcements.</p>
+  </section>
+
+  <!-- Featured Video Carousel -->
+  <section class="card glass">
+    <h3>Featured Videos</h3>
+    <div class="carousel" id="videoCarousel">
+      <!-- Replace with your YouTube video IDs -->
+      <div class="slide active"><iframe src="https://youtube.com/shorts/SAwyEO8V1no?si=2cgjuzK2dH1Fn1Pi" title="RichSea Intro" frameborder="0" allowfullscreen></iframe></div>
+      <div class="slide"><iframe src="https://www.youtube.com/embed/oHg5SJYRHA0" title="SocialFi Deep Dive" frameborder="0" allowfullscreen></iframe></div>
+    </div>
+    <div class="carousel-controls">
+      <button class="btn btn-ghost" id="prevVideo">‹</button>
+      <button class="btn btn-ghost" id="nextVideo">›</button>
+    </div>
+  </section>
+
+  <!-- News Grid (equal glowing cards, auto—animated with CSS/JS) -->
+  <section class="news-grid-wrap">
+    <h3>All Updates</h3>
+    <div class="news-grid" id="newsGrid">
+      <!-- Example items; replace with your DB feed in app.js later -->
+      <article class="news-card glow"><h4>Partnership Milestone</h4><p>We’re collaborating with leading SocialFi infra to expand reach.</p><time>Mar 2025</time></article>
+      <article class="news-card glow"><h4>Dashboard Upgrade</h4><p>Performance and insights improvements now live.</p><time>Mar 2025</time></article>
+      <article class="news-card glow"><h4>Community AMA</h4><p>Join the next AMA to discuss roadmap and rewards.</p><time>Feb 2025</time></article>
+      <article class="news-card glow"><h4>Treasury Report</h4><p>Transparency matters—read the latest monthly summary.</p><time>Feb 2025</time></article>
+      <article class="news-card glow"><h4>Contest Week</h4><p>Trivia returns with boosted prize pools in $RICHSEA.</p><time>Jan 2025</time></article>
+      <article class="news-card glow"><h4>Academy Lessons</h4><p>New SocialFi strategies added for beginners.</p><time>Jan 2025</time></article>
+      <article class="news-card glow"><h4>Security Review</h4><p>Audit schedule locked—continuous hardening in progress.</p><time>Dec 2024</time></article>
+      <article class="news-card glow"><h4>Holders 50K+</h4><p>Community growth milestone—thank you!</p><time>Dec 2024</time></article>
+    </div>
+  </section>
+
+  <footer class="abyss">
+    <div class="ground"><div class="ground"><div class="footer-links"></div></div><div class="creature crab"></div><div class="creature angler"></div><div class="creature jelly"></div>
+    <div class="footer-links"><div><h5>Explore</h5><a href="index.html">Home</a><a href="academy.html">Academy</a></div><div><h5>Community</h5><a href="https://x.com/RICH_SEA1" target="_blank">Twitter</a><a href="https://t.me/RichSea001" target="_blank">Telegram</a></div><div><h5>App</h5><a href="dashboard.html">Dashboard</a><a href="app.apk">Download App</a></div></div>
+  </footer>
+
+  <button class="chat-fab" id="chatFab" aria-label="Open chatbot">
+  <span class="bot-face"><span id="botMouth" class="bot-mouth"></span></span>
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+  <div class="chat-head">
+    <div class="chat-title">
+      <span>🤖</span>
+      <h4 id="chatTitle" style="margin:0">RichSea Assistant</h4>
+    </div>
+    <div class="chat-voice">
+      <button id="voiceFemale" class="voice-chip">Female</button>
+      <button id="voiceMale" class="voice-chip">Male</button>
+      <button id="soundToggle" class="voice-chip" title="Toggle sound">🔊</button>
+      <button id="chatClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody" aria-live="polite"></div>
+  <div class="chat-input">
+    <input id="chatText" type="text" placeholder="Ask about RichSea…" />
+    <button id="chatSend" class="btn btn-primary">Send</button>
+  </div>
+</div>
+
+  <script>
+    // simple carousel controls (no external libs)
+    (function(){
+      const slides=[...document.querySelectorAll('#videoCarousel .slide')];
+      let i=0;
+      function show(n){ slides.forEach((s,idx)=> s.classList.toggle('active', idx===n)); }
+      document.getElementById('prevVideo')?.addEventListener('click', ()=>{ i=(i-1+slides.length)%slides.length; show(i); });
+      document.getElementById('nextVideo')?.addEventListener('click', ()=>{ i=(i+1)%slides.length; show(i); });
+    })();
+  </script>
+</body>
+</html>

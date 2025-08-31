@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RichSea — Tokenomics</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="ocean" id="ocean">
+  <div class="ray ray-1"></div>
+  <div class="ray ray-2"></div>
+  <div class="ray ray-3"></div>
+  <div class="parallax layer1"></div>
+  <div class="parallax layer2"></div>
+  <div class="parallax layer3"></div>
+</div>
+  <div class="ocean" id="ocean"><div class="ray ray-1"></div><div class="ray ray-2"></div><div class="ray ray-3"></div><div class="parallax layer1"></div><div class="parallax layer2"></div><div class="parallax layer3"></div></div>
+
+  <header class="nav-wrap">
+    <nav class="navbar">
+      <a href="index.html" class="brand"><img src="images/Richsealogo.png" class="logo" alt=""><span class="brand-name">$RICHSEA</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li><li><a href="community.html">Community</a></li><li><a href="dashboard.html">Dashboard</a></li><li><a href="news.html">News</a></li><li><a href="about.html">About</a></li><li><a class="active" href="tokenomics.html">Tokenomics</a></li><li><a href="academy.html">Academy</a></li><li><a href="contest.html">Contest</a></li>
+      </ul>
+      <a class="btn btn-pill btn-primary" href="app.apk">Download App</a>
+    </nav>
+  </header>
+<div class="ticker-bar" aria-live="polite">
+  <div class="ticker-inner" id="ticker">
+    <div class="spinner" aria-label="Loading prices"></div>
+  </div>
+</div>
+<section class="card glass token-widget">
+  <h2>RICHSEA Live</h2>
+  <div class="tw-row">
+    <div class="tw-stat"><label>Price (USD)</label><div id="rsPrice" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Change</label><div id="rsChange" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>Market Cap</label><div id="rsMcap" class="stat-value">—</div></div>
+    <div class="tw-stat"><label>24h Volume</label><div id="rsVol" class="stat-value">—</div></div>
+  </div>
+  <div class="tw-actions">
+    <button class="btn btn-ghost" id="refreshPrices">Refresh</button>
+    <code class="contract">CA: <span id="contractCopy" title="Click to copy">0xb93d116A1CB1AEE03A64053542Ec966368652873</span></code>
+  </div>
+</section>
+  <section class="page-hero">
+    <h1 class="grad">Tokenomics</h1>
+    <p class="muted">A transparent, sustainable design that aligns long-term incentives with community value.</p>
+  </section>
+
+  <!-- Token Info Card -->
+  <section class="grid-3">
+    <article class="card glass glow-strong">
+    <article class="card glass">
+      <h3>Token Information</h3>
+      <ul class="list">
+        
+        <li><strong>Token name:</strong> RichSea Token</li>
+        <li><strong>Token symbol:</strong> $RICH</li>
+        <li><strong>Token utility:</strong> governance, rewards, access, staking incentives</li>
+        <li><strong>Network:</strong> BSC (Binance Smart Chain)</li>
+        <li><strong>Liquidity:</strong> Locked for 5 years</li>
+        <li><strong>Contract Address:</strong>
+          <span class="contract mono selectable">0xb93d116A1CB1AEE03A64053542Ec966368652873</span>
+                </li>
+      </ul>
+      
+      </article>
+      <article class="card glass">
+      <h3>Live Metrics</h3>
+      <ul class="list">
+        <li><strong>Price (USD):</strong> <span id="livePrice">—</span></li>
+        <li><strong>24h Change:</strong> <span id="liveChange">—</span></li>
+        <li><strong>Market Cap:</strong> <span id="liveMcap">—</span></li>
+        <li><strong>24h Volume:</strong> <span id="liveVol">—</span></li>
+      </ul>
+      <button class="btn btn-ghost" id="refreshTokenomics">Refresh</button>
+    </article>
+
+    <article class="card glass">
+      <h3>Supply & Holders</h3>
+      <ul class="list">
+        <li><strong>Circulating Supply:</strong> <span id="circSupply">—</span></li>
+        <li><strong>Holders:</strong> <span id="holders">—</span></li>
+      </ul>
+      <p class="muted">Fetched from BSCScan when available.</p>
+    </article>
+    </article>
+        
+    
+    <section id="tokenPieWrap" class="glass card">
+  <canvas id="tokenPie"></canvas>
+</section>
+  </section>
+
+  <!-- Distribution Chart (CSS 3D-ish) -->
+  <section class="card glass">
+    <h3>Distribution</h3>
+    <p class="muted">Hover to see each allocation.</p>
+    <div class="pie-3d" id="pie3d"
+      title="Liquidity — 40% • Farming — 30% • Treasury — 20% • Team — 10%">
+      <!-- purely decorative wedges with CSS conic-gradient (tooltips handled by JS) -->
+    </div>
+    <div class="legend">
+      <span class="dot liq"></span> Liquidity — 40%
+      <span class="dot farm"></span> Farming Rewards — 30%
+      <span class="dot tre"></span> Treasury & Growth — 20%
+      <span class="dot team"></span> Team (Vested) — 10%
+    </div>
+  </section>
+
+  <!-- Vesting Timeline (text) -->
+  <section class="card glass">
+    <h3>Vesting Timeline (Team & Ops — 10%)</h3>
+    <ul class="timeline list">
+      <li><strong>TGE:</strong> 0% unlocked for team.</li>
+      <li><strong>Cliff:</strong> 3 months.</li>
+      <li><strong>Linear unlock:</strong> over 24 months post-cliff (monthly).</li>
+      <li><strong>Rationale:</strong> aligns incentives, reduces sell pressure, supports long-term delivery.</li>
+    </ul>
+  </section>
+
+  <footer class="abyss">
+    <div class="ground"><div class="ground"><div class="footer-links"></div></div><div class="creature crab"></div><div class="creature angler"></div><div class="creature jelly"></div>
+    <div class="footer-links"><div><h5>Explore</h5><a href="index.html">Home</a><a href="news.html">News</a></div><div><h5>Community</h5><a href="https://x.com/RICH_SEA1" target="_blank">Twitter</a><a href="https://t.me/RichSea001" target="_blank">Telegram</a></div><div><h5>App</h5><a href="dashboard.html">Dashboard</a><a href="app.apk">Download App</a></div></div>
+  </footer>
+
+  <button class="chat-fab" id="chatFab" aria-label="Open chatbot">
+  <span class="bot-face"><span id="botMouth" class="bot-mouth"></span></span>
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+  <div class="chat-head">
+    <div class="chat-title">
+      <span>🤖</span>
+      <h4 id="chatTitle" style="margin:0">RichSea Assistant</h4>
+    </div>
+    <div class="chat-voice">
+      <button id="voiceFemale" class="voice-chip">Female</button>
+      <button id="voiceMale" class="voice-chip">Male</button>
+      <button id="soundToggle" class="voice-chip" title="Toggle sound">🔊</button>
+      <button id="chatClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody" aria-live="polite"></div>
+  <div class="chat-input">
+    <input id="chatText" type="text" placeholder="Ask about RichSea…" />
+    <button id="chatSend" class="btn btn-primary">Send</button>
+  </div>
+</div>
+
+  <script>
+    // Hook up live data buttons to existing app.js fetchers (CoinGecko/BSCScan)
+    document.getElementById('refreshTokenomics')?.addEventListener('click', ()=> {
+      window.RS && RS.refreshTokenomics && RS.refreshTokenomics({
+        price:'#livePrice', change:'#liveChange', mcap:'#liveMcap', vol:'#liveVol',
+        circ:'#circSupply', holders:'#holders'
+      });
+    });
+    // Initialize once on load
+    document.addEventListener('DOMContentLoaded', ()=> {
+      window.RS && RS.refreshTokenomics && RS.refreshTokenomics({
+        price:'#livePrice', change:'#liveChange', mcap:'#liveMcap', vol:'#liveVol',
+        circ:'#circSupply', holders:'#holders'
+      });
+    });
+  </script>
+</body>
+</html>
