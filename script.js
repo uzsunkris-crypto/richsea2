@@ -1,4 +1,4 @@
-// --- Scene setup ---
+// --- Three.js scene setup ---
 const container = document.getElementById("scene-container");
 const scene = new THREE.Scene();
 
@@ -18,36 +18,28 @@ renderer.setPixelRatio(window.devicePixelRatio);
 container.appendChild(renderer.domElement);
 
 // Lights
-const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+const ambient = new THREE.AmbientLight(0xffffff, 0.8);
 scene.add(ambient);
+
 const point = new THREE.PointLight(0xffffff, 1);
 point.position.set(5, 3, 5);
 scene.add(point);
 
 // Globe
-const textureLoader = new THREE.TextureLoader();
-const earthTexture = textureLoader.load(
-  "https://cdn.jsdelivr.net/gh/pmndrs/drei-assets@master/earth-night.jpg"
+const loader = new THREE.TextureLoader();
+loader.crossOrigin = '';
+const globeTexture = loader.load(
+  "https://threejsfundamentals.org/threejs/resources/images/earth-day.jpg",
+  () => { renderer.render(scene, camera); }
 );
-const geometry = new THREE.SphereGeometry(1, 64, 64);
-const material = new THREE.MeshPhongMaterial({
-  map: earthTexture,
-  emissive: 0x112244,
-  emissiveIntensity: 0.4,
-});
-const globe = new THREE.Mesh(geometry, material);
+const globeMaterial = new THREE.MeshPhongMaterial({ map: globeTexture });
+const globe = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), globeMaterial);
 scene.add(globe);
 
 // Atmosphere glow
-const atmosphereMaterial = new THREE.MeshBasicMaterial({
-  color: 0x3399ff,
-  transparent: true,
-  opacity: 0.2,
-  side: THREE.BackSide,
-});
 const atmosphere = new THREE.Mesh(
   new THREE.SphereGeometry(1.05, 64, 64),
-  atmosphereMaterial
+  new THREE.MeshBasicMaterial({ color: 0x3399ff, transparent: true, opacity: 0.2, side: THREE.BackSide })
 );
 scene.add(atmosphere);
 
@@ -59,40 +51,46 @@ controls.rotateSpeed = 0.5;
 
 // Resize
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// --- News Bubble Logic ---
+// --- News bubble system ---
 let newsCount = 0;
 const newsContainer = document.getElementById("news-bubbles");
 
-// Helper to add a news bubble
-function addNewsBubble(text, isMajor=false) {
+function addNewsBubble(text, isMajor=false){
   const bubble = document.createElement("div");
   bubble.classList.add("bubble");
   bubble.textContent = text;
-
-  if(isMajor) {
+  if(isMajor){
     bubble.style.transform = "scale(2)";
     bubble.style.background = "rgba(0,255,255,0.3)";
   }
-
-  // Random placement on screen for demo purposes
   bubble.style.top = Math.random() * 80 + "%";
   bubble.style.left = Math.random() * 80 + "%";
-
   newsContainer.appendChild(bubble);
   newsCount++;
 }
 
-// Add some demo bubbles
-for(let i=0;i<15;i++){
-  addNewsBubble(`Demo Story #${i+1}`);
-}
+// --- Demo posts ---
+const demoPosts = [
+  "New tech hub rises in Africa",
+  "Climate summit begins in Europe",
+  "AI breakthrough in Asia",
+  "Gossip: Celebrity spotted in NYC",
+  "Juicy: Secret concert in Paris",
+  "Space mission launched",
+  "Global market updates",
+  "Juicy: Influencer scandal",
+  "New environmental project",
+  "Science award announced"
+];
 
-// --- Floating Post Bubble ---
+demoPosts.forEach(post => addNewsBubble(post));
+
+// --- Post form logic ---
 const postBubble = document.getElementById("post-bubble");
 const postForm = document.getElementById("post-form");
 const submitPost = document.getElementById("submit-post");
@@ -103,16 +101,14 @@ postBubble.addEventListener("click", ()=>{
   postForm.style.display = "block";
 });
 
-// Close form
 closePost.addEventListener("click", ()=>{
   postForm.style.display = "none";
   vpnWarning.style.display = "none";
 });
 
-// Submit Post
 submitPost.addEventListener("click", ()=>{
-  // --- Simulated VPN check ---
-  const vpnDetected = false; // Replace with actual logic later
+  // --- VPN placeholder ---
+  const vpnDetected = false; // set to true to simulate VPN block
   if(vpnDetected){
     vpnWarning.style.display = "block";
     return;
@@ -121,7 +117,7 @@ submitPost.addEventListener("click", ()=>{
   const text = document.getElementById("post-text").value;
   if(!text) return;
 
-  // Placeholder: detect if cinematic/juicy
+  // Major post detection placeholder
   const isMajor = text.toLowerCase().includes("gossip") || text.toLowerCase().includes("juicy");
 
   addNewsBubble(text, isMajor);
@@ -133,8 +129,8 @@ submitPost.addEventListener("click", ()=>{
   vpnWarning.style.display = "none";
 });
 
-// --- Animation loop ---
-function animate() {
+// --- Animation ---
+function animate(){
   requestAnimationFrame(animate);
   globe.rotation.y += 0.0008;
   atmosphere.rotation.y += 0.0008;
