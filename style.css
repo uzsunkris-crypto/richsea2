@@ -1,44 +1,103 @@
+/* General background and organic feel */
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at center, #01020a 0%, #000 100%);
   font-family: 'Segoe UI', sans-serif;
-  color: white;
+  overflow: hidden;
+  background: linear-gradient(160deg, #01020a, #0f0f1f);
 }
 
-#scene-container {
-  position: fixed;
-  width: 100vw;
-  height: 100vh;
-}
-
-#news-bubbles {
+/* Animated particle background */
+#background {
   position: fixed;
   width: 100%;
   height: 100%;
+  z-index: -1;
+  background: radial-gradient(circle at center, #001122, #000000);
+  overflow: hidden;
+}
+
+/* Continent cards */
+#continent-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 5;
+}
+
+.continent {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s, background 0.3s;
+  color: white;
+}
+
+.continent:hover {
+  transform: scale(1.1);
+  background: rgba(0,255,255,0.2);
+}
+
+/* News container */
+#news-container {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: calc(100% - 100px);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow-y: auto;
+  gap: 15px;
+  padding: 10px;
   pointer-events: none;
 }
 
+/* News bubbles */
 .bubble {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 20px;
-  padding: 8px 14px;
-  font-size: 14px;
+  position: relative;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  padding: 10px;
+  width: 200px;
+  min-height: 100px;
   backdrop-filter: blur(6px);
-  pointer-events: auto;
   cursor: pointer;
-  transition: transform 0.3s ease, background 0.3s ease;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.bubble img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 5px;
 }
 
 .bubble:hover {
-  transform: scale(1.2);
-  background: rgba(0,255,255,0.3);
+  transform: scale(1.05);
+  background: rgba(0,255,255,0.2);
 }
 
+/* Major bubble effect */
+.major {
+  transform: scale(1.5);
+  border: 2px solid cyan;
+  box-shadow: 0 0 15px cyan;
+}
+
+/* Post bubble at bottom */
 #post-bubble {
   position: fixed;
   bottom: 20px;
@@ -50,7 +109,8 @@ html, body {
   cursor: pointer;
   font-size: 16px;
   backdrop-filter: blur(6px);
-  transition: background 0.3s ease, transform 0.3s ease;
+  z-index: 10;
+  transition: background 0.3s, transform 0.3s;
 }
 
 #post-bubble:hover {
@@ -58,6 +118,7 @@ html, body {
   transform: translateX(-50%) scale(1.1);
 }
 
+/* Post form overlay */
 #post-form {
   display: none;
   position: fixed;
@@ -68,7 +129,7 @@ html, body {
   border: 2px solid #0ff;
   border-radius: 15px;
   padding: 20px;
-  z-index: 10;
+  z-index: 11;
   width: 320px;
   backdrop-filter: blur(8px);
 }
