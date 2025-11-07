@@ -3,28 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEWSPAPER — Living Globe</title>
-<link rel="stylesheet" href="style.css">
+<title>NEWSPAPER Globe Test</title>
+<style>
+  body { margin:0; overflow:hidden; background:black; }
+  canvas { display:block; }
+</style>
 </head>
 <body>
-
-<div id="scene-container"></div>
-
-<div id="news-bubbles"></div>
-
-<div id="post-bubble">💬 Type anything…</div>
-
-<div id="post-form">
-  <textarea id="post-text" placeholder="Tell the world what’s happening…"></textarea>
-  <input type="file" id="post-image" accept="image/*">
-  <button id="submit-post">🌍 Share</button>
-  <button id="close-post">❌ Close</button>
-  <div id="vpn-warning">VPN detected — post blocked!</div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-<script src="script.js"></script>
+<script>
 
+// Scene, Camera, Renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,0,3);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Controls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enablePan = false;
+
+// Light
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(5,3,5);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+// Globe
+const loader = new THREE.TextureLoader();
+loader.crossOrigin = '';
+const texture = loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+  ()=>{ renderer.render(scene, camera); } // callback
+);
+const globe = new THREE.Mesh(
+  new THREE.SphereGeometry(1,64,64),
+  new THREE.MeshPhongMaterial({ map: texture })
+);
+scene.add(globe);
+
+// Resize
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animate
+function animate(){
+  requestAnimationFrame(animate);
+  globe.rotation.y += 0.001;
+  renderer.render(scene,camera);
+}
+animate();
+
+</script>
 </body>
 </html>
