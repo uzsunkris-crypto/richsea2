@@ -1,139 +1,88 @@
-// --- Three.js scene setup ---
-const container = document.getElementById("scene-container");
-const scene = new THREE.Scene();
-
-// Camera
-const camera = new THREE.PerspectiveCamera(
-  45,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.set(0, 0, 3);
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-container.appendChild(renderer.domElement);
-
-// Lights
-const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-scene.add(ambient);
-
-const point = new THREE.PointLight(0xffffff, 1);
-point.position.set(5, 3, 5);
-scene.add(point);
-
-// Globe
-const loader = new THREE.TextureLoader();
-loader.crossOrigin = '';
-const globeTexture = loader.load(
-  "https://threejsfundamentals.org/threejs/resources/images/earth-day.jpg",
-  () => { renderer.render(scene, camera); }
-);
-const globeMaterial = new THREE.MeshPhongMaterial({ map: globeTexture });
-const globe = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), globeMaterial);
-scene.add(globe);
-
-// Atmosphere glow
-const atmosphere = new THREE.Mesh(
-  new THREE.SphereGeometry(1.05, 64, 64),
-  new THREE.MeshBasicMaterial({ color: 0x3399ff, transparent: true, opacity: 0.2, side: THREE.BackSide })
-);
-scene.add(atmosphere);
-
-// Controls
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableZoom = true;
-controls.enablePan = false;
-controls.rotateSpeed = 0.5;
-
-// Resize
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// --- News bubble system ---
-let newsCount = 0;
-const newsContainer = document.getElementById("news-bubbles");
-
-function addNewsBubble(text, isMajor=false){
-  const bubble = document.createElement("div");
-  bubble.classList.add("bubble");
-  bubble.textContent = text;
-  if(isMajor){
-    bubble.style.transform = "scale(2)";
-    bubble.style.background = "rgba(0,255,255,0.3)";
-  }
-  bubble.style.top = Math.random() * 80 + "%";
-  bubble.style.left = Math.random() * 80 + "%";
-  newsContainer.appendChild(bubble);
-  newsCount++;
-}
-
-// --- Demo posts ---
-const demoPosts = [
-  "New tech hub rises in Africa",
-  "Climate summit begins in Europe",
-  "AI breakthrough in Asia",
-  "Gossip: Celebrity spotted in NYC",
-  "Juicy: Secret concert in Paris",
-  "Space mission launched",
-  "Global market updates",
-  "Juicy: Influencer scandal",
-  "New environmental project",
-  "Science award announced"
-];
-
-demoPosts.forEach(post => addNewsBubble(post));
-
-// --- Post form logic ---
+const continents = document.querySelectorAll(".continent");
+const newsContainer = document.getElementById("news-container");
 const postBubble = document.getElementById("post-bubble");
 const postForm = document.getElementById("post-form");
 const submitPost = document.getElementById("submit-post");
 const closePost = document.getElementById("close-post");
 const vpnWarning = document.getElementById("vpn-warning");
 
-postBubble.addEventListener("click", ()=>{
+let currentRegion = "Africa"; // default region
+let newsData = {
+  Africa: [],
+  Europe: [],
+  Asia: [],
+  America: [],
+  Oceania: []
+};
+
+// Switch continent
+continents.forEach(c => {
+  c.addEventListener("click", () => {
+    currentRegion = c.dataset.region;
+    renderNews();
+  });
+});
+
+// Render news bubbles
+function renderNews() {
+  newsContainer.innerHTML = "";
+  const regionNews = newsData[currentRegion];
+  regionNews.forEach((post, idx) => {
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble");
+    if(post.isMajor) bubble.classList.add("major");
+    if(post.image){
+      const img = document.createElement("img");
+      img.src = post.image;
+      bubble.appendChild(img);
+    }
+    const text = document.createElement("div");
+    text.textContent = post.text;
+    bubble.appendChild(text);
+    newsContainer.appendChild(bubble);
+  });
+}
+
+// Open post form
+postBubble.addEventListener("click", () => {
   postForm.style.display = "block";
 });
 
-closePost.addEventListener("click", ()=>{
+// Close post form
+closePost.addEventListener("click", () => {
   postForm.style.display = "none";
   vpnWarning.style.display = "none";
 });
 
-submitPost.addEventListener("click", ()=>{
-  // --- VPN placeholder ---
-  const vpnDetected = false; // set to true to simulate VPN block
+// Submit new post
+submitPost.addEventListener("click", () => {
+  const vpnDetected = false; // placeholder
   if(vpnDetected){
     vpnWarning.style.display = "block";
     return;
   }
 
   const text = document.getElementById("post-text").value;
+  const imageInput = document.getElementById("post-image");
+  let imageUrl = "";
+  if(imageInput.files && imageInput.files[0]){
+    imageUrl = URL.createObjectURL(imageInput.files[0]);
+  }
   if(!text) return;
 
-  // Major post detection placeholder
+  // Major post detection
   const isMajor = text.toLowerCase().includes("gossip") || text.toLowerCase().includes("juicy");
 
-  addNewsBubble(text, isMajor);
+  // Add post
+  newsData[currentRegion].push({ text, image: imageUrl, isMajor });
+  renderNews();
 
   // Clear form
   document.getElementById("post-text").value = "";
-  document.getElementById("post-image").value = "";
+  imageInput.value = "";
   postForm.style.display = "none";
   vpnWarning.style.display = "none";
 });
 
-// --- Animation ---
-function animate(){
-  requestAnimationFrame(animate);
-  globe.rotation.y += 0.0008;
-  atmosphere.rotation.y += 0.0008;
-  renderer.render(scene, camera);
-}
-animate();
+// Initial render
+renderNews();
