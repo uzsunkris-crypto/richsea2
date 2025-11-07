@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEWSPAPER Globe Mobile Test</title>
+<title>NEWSPAPER Globe GitHub</title>
 <style>
   html, body {
     margin: 0;
@@ -54,11 +54,11 @@ const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(5,3,5);
 scene.add(pointLight);
 
-// Globe
+// Globe texture (CORS-friendly)
 const loader = new THREE.TextureLoader();
 loader.crossOrigin = '';
 const globeTexture = loader.load(
-  'https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/earthmap1k.jpg',
+  'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
   () => { renderer.render(scene,camera); }
 );
 
@@ -69,7 +69,14 @@ const globeMaterial = new THREE.MeshPhongMaterial({
 const globe = new THREE.Mesh(new THREE.SphereGeometry(1,64,64), globeMaterial);
 scene.add(globe);
 
-// Handle resize
+// Atmosphere glow
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(1.05,64,64),
+  new THREE.MeshBasicMaterial({color:0x3399ff, transparent:true, opacity:0.2, side: THREE.BackSide})
+);
+scene.add(atmosphere);
+
+// Resize
 window.addEventListener('resize', ()=>{
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
@@ -79,11 +86,12 @@ window.addEventListener('resize', ()=>{
 // Animate
 function animate(){
   requestAnimationFrame(animate);
-  globe.rotation.y += 0.0012;
-  renderer.render(scene, camera);
+  globe.rotation.y += 0.0015;
+  atmosphere.rotation.y += 0.0015;
+  renderer.render(scene,camera);
 }
 animate();
-
 </script>
+
 </body>
 </html>
