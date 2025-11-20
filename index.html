@@ -1,35 +1,113 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEWSPAPER</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Nigeria Route Tracker</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <!-- Optional marker color icons -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+
+  <link rel="stylesheet" href="styles.css"/>
+
+  <!-- Paystack inline (public key used only) -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <!-- Firebase compat SDKs (simple for quick frontend) -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
 </head>
 <body>
+  <header class="topbar">
+    <div class="brand">Nigeria Route Tracker</div>
+    <div class="top-actions">
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">🌗</button>
+      <span id="user-email" class="muted"></span>
+      <button id="signout" class="ghost" style="display:none">Sign out</button>
+    </div>
+  </header>
 
-<div id="background"></div>
+  <main class="app-shell">
+    <!-- Left panel / controls (collapsible on mobile) -->
+    <aside class="panel" id="control-panel">
+      <section id="auth-panel">
+        <h3>Welcome</h3>
+        <p class="muted">Sign in with Gmail to continue</p>
+        <button id="btn-google" class="primary full">Continue with Google</button>
+        <div id="verify-note" class="muted small" style="display:none">
+          Please verify your email (we'll send a link). After that you'll be able to pay.
+        </div>
+      </section>
 
-<div id="continent-container">
-  <div class="continent" data-region="Africa">Africa</div>
-  <div class="continent" data-region="Europe">Europe</div>
-  <div class="continent" data-region="Asia">Asia</div>
-  <div class="continent" data-region="America">America</div>
-  <div class="continent" data-region="Oceania">Oceania</div>
-</div>
+      <section id="access-panel" style="display:none">
+        <div class="card">
+          <div id="access-status" class="status">Not paid for today</div>
+          <div class="muted small">Payment is ₦100 for the current date (expires at midnight).</div>
+          <div style="margin-top:10px">
+            <button id="pay-btn" class="primary full">Pay ₦100 for today</button>
+          </div>
+        </div>
 
-<div id="news-container"></div>
+        <div class="card" style="margin-top:12px">
+          <label class="label">Role</label>
+          <div class="row">
+            <button id="role-passenger" class="chip">Passenger</button>
+            <button id="role-driver" class="chip">Driver</button>
+          </div>
 
-<div id="post-bubble">💬 Type anything…</div>
+          <label class="label" style="margin-top:12px">Destination / Route</label>
+          <input id="route-input" type="text" placeholder="Type a town, street, village..." />
 
-<div id="post-form">
-  <textarea id="post-text" placeholder="Share your news…"></textarea>
-  <input type="file" id="post-image" accept="image/*">
-  <button id="submit-post">🌍 Share</button>
-  <button id="close-post">❌ Close</button>
-  <div id="vpn-warning">VPN detected — post blocked!</div>
-</div>
+          <div class="row" style="margin-top:10px">
+            <button id="save-fav" class="ghost">Save favorite</button>
+            <button id="go-live" class="primary">Publish my location</button>
+          </div>
 
-<script src="script.js"></script>
+          <div style="margin-top:10px">
+            <label class="label">Driver capacity</label>
+            <div class="row">
+              <button data-cap="empty" class="cap-btn chip">Empty</button>
+              <button data-cap="few" class="cap-btn chip">Few seats</button>
+              <button data-cap="full" class="cap-btn chip">Full</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="muted">Favorites</div>
+          <ul id="fav-list" class="fav-list"></ul>
+        </div>
+
+        <div class="card small muted" style="margin-top:12px">
+          Active: <span id="counts">-- passengers · -- drivers</span>
+        </div>
+
+        <div style="margin-top:12px">
+          <button id="panic" class="danger full">⚠️ SOS — Panic</button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Map -->
+    <section id="map-area">
+      <div id="map"></div>
+
+      <!-- floating small controls -->
+      <div class="floating-controls">
+        <button id="locate" class="circle">📍</button>
+        <button id="toggle-panel" class="circle">🧭</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer muted">© YourService • Built for Nigeria • OpenStreetMap</footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
