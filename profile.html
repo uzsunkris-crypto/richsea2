@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Profile — Search</title><link rel="stylesheet" href="styles.css"/><script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script><script src="firebase-config.js"></script>
+</head>
+<body>
+  <header class="topbar"><div class="brand">SEARCH</div></header>
+  <main style="padding:20px">
+    <section class="card" style="max-width:600px;margin:20px auto">
+      <h3>Your Profile</h3>
+      <div id="profile-area">
+        <div><strong id="pf-name">-</strong> <span id="pf-email" class="muted"></span></div>
+        <div style="margin-top:12px">
+          <label class="label">Mode</label>
+          <div class="row">
+            <button id="profile-mode-pass" class="chip">Passenger</button>
+            <button id="profile-mode-drive" class="chip">Driver</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px"><a href="dashboard.html" class="primary">Back to Map</a></div>
+    </section>
+  </main>
+  <script>
+    // small client: main auth handling is in app.js; this page reads current user if present
+  </script>
+</body>
+</html>
