@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Login — SEARCH (demo)</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="auth-body">
+  <main class="auth-card">
+    <div class="brand-mini">SEARCH</div>
+    <h2>Welcome back</h2>
+    <p class="muted">This is demo login — pressing "Continue with Google" will open the app for frontend testing.</p>
+
+    <div class="auth-actions">
+      <a id="google-btn" class="primary full">Continue with Google</a>
+      <a href="index.html" class="ghost full">Back</a>
+    </div>
+
+    <small class="muted">Note: later this button will use Firebase Google Sign-In.</small>
+  </main>
+
+<script>
+  document.getElementById('google-btn').addEventListener('click', ()=> {
+    // demo user (stored locally) — replace later with real Firebase auth
+    const demo = { uid: 'demo-user', name: 'Demo User', email: 'demo@example.com' };
+    localStorage.setItem('search_user', JSON.stringify(demo));
+    // if no mode yet, ask for mode first
+    if(!localStorage.getItem('search_mode')) {
+      location.href = 'index.html';
+    } else {
+      location.href = 'dashboard.html';
+    }
+  });
+</script>
+</body>
+</html>
