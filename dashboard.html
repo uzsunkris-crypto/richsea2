@@ -4,16 +4,16 @@
   <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>SEARCH — Live Map</title>
 
-  <!-- Leaflet dark tiles -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="styles.css"/>
+
   <script src="firebase-config.js"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="left">
       <div class="brand">SEARCH</div>
-      <div id="mode-toggle" class="mode-toggle">
+      <div id="mode-toggle" class="mode-toggle" aria-hidden>
         <button id="toggle-pass" class="mode-btn">Passenger</button>
         <div class="switcher">|</div>
         <button id="toggle-drive" class="mode-btn">Driver</button>
@@ -34,12 +34,12 @@
         <p class="muted small" id="sub-welcome">Select your destination or go online</p>
       </div>
 
-      <div id="authless-area" class="card small muted">
+      <div id="authless-area" class="card small muted" style="margin-top:12px;">
         Demo mode: no backend — full UI testing.
       </div>
 
-      <div id="controls" style="display:none">
-        <label class="label">Mode</label>
+      <div id="controls" class="card" style="margin-top:12px">
+        <label class="label">Mode (quick)</label>
         <div class="row">
           <button id="ui-mode-pass" class="chip">Passenger</button>
           <button id="ui-mode-drive" class="chip">Driver</button>
@@ -53,11 +53,14 @@
 
         <div class="row" style="margin-top:10px">
           <button id="find-btn" class="primary">Find Drivers</button>
-          <button id="fav-btn" class="ghost">Save</button>
+          <button id="save-fav" class="ghost">Save</button>
         </div>
 
         <label class="label" style="margin-top:12px">Seats (driver)</label>
         <input id="seats-input" type="number" min="0" max="14" placeholder="Seats (0-14)" />
+
+        <label class="label" style="margin-top:12px">Price (optional)</label>
+        <input id="price-input" placeholder="₦ — set your price (driver)" />
 
         <div style="margin-top:12px">
           <button id="publish-btn" class="primary full">Publish my location</button>
@@ -69,34 +72,34 @@
         <div id="drivers-list" class="drivers-list"></div>
       </div>
 
+      <div class="card small muted" style="margin-top:12px">
+        <div>Favorites</div>
+        <ul id="fav-list" class="fav-list"></ul>
+      </div>
+
       <div style="margin-top:12px">
         <button id="panic" class="danger full">⚠️ SOS — Panic</button>
       </div>
-
     </aside>
 
     <section id="map-area">
       <div id="map"></div>
-
       <div class="floating-controls">
-        <button id="locate" class="circle">📍</button>
-        <button id="toggle-panel" class="circle">🧭</button>
+        <button id="locate" class="circle" title="Center on me">📍</button>
+        <button id="toggle-panel" class="circle" title="Show / Hide controls">🧭</button>
       </div>
     </section>
   </main>
 
   <footer class="footer muted">© Search • Demo Mode • Nigeria</footer>
 
-  <!-- libs -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
 
-  <!-- our map & app -->
   <script src="map-logic.js"></script>
   <script src="app.js"></script>
 
   <script>
-    // quick SW registration (if provided)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(()=>{/*ignore*/});
     }
