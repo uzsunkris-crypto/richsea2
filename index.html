@@ -3,135 +3,34 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Nigeria Route Tracker</title>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <!-- Optional marker color icons -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
-
+  <title>Search — Know who's going your way</title>
   <link rel="stylesheet" href="styles.css"/>
-
-  <!-- Paystack inline (public key used only) -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-
-  <!-- Firebase compat SDKs (simple for quick frontend) -->
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
+  <link rel="manifest" href="manifest.json" />
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand">Nigeria Route Tracker</div>
-    <div class="top-actions">
-      <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">🌗</button>
-      <span id="user-email" class="muted"></span>
-      <button id="signout" class="ghost" style="display:none">Sign out</button>
-    </div>
+<body class="landing-body">
+  <header class="landing-header">
+    <div class="brand">SEARCH</div>
   </header>
 
-  <main class="app-shell">
-    <!-- Left panel / controls (collapsible on mobile) -->
-    <aside class="panel" id="control-panel">
-      <section id="auth-panel">
-        <h3>Welcome</h3>
-        <p class="muted">Sign in with Gmail to continue</p>
-        <button id="btn-google" class="primary full">Continue with Google</button>
-        <div id="verify-note" class="muted small" style="display:none">
-          Please verify your email (we'll send a link). After that you'll be able to pay.
-        </div>
-      </section>
+  <main class="landing-main">
+    <section class="hero card">
+      <h1 class="hero-title">Search — Know who's going your way</h1>
+      <p class="hero-sub">Real-time bus & driver info across Nigeria — choose drivers, save time, stay safe.</p>
 
-      <section id="access-panel" style="display:none">
-        <div class="card">
-          <div id="access-status" class="status">Not paid for today</div>
-          <div class="muted small">Payment is ₦100 for the current date (expires at midnight).</div>
-          <div style="margin-top:10px">
-            <button id="pay-btn" class="primary full">Pay ₦100 for today</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <label class="label">Role</label>
-          <div class="row">
-            <button id="role-passenger" class="chip">Passenger</button>
-            <button id="role-driver" class="chip">Driver</button>
-          </div>
-
-          <label class="label" style="margin-top:12px">Destination / Route</label>
-          <input id="route-input" type="text" placeholder="Type a town, street, village..." />
-
-          <div class="row" style="margin-top:10px">
-            <button id="save-fav" class="ghost">Save favorite</button>
-            <button id="go-live" class="primary">Publish my location</button>
-          </div>
-
-          <div style="margin-top:10px">
-            <label class="label">Driver capacity</label>
-            <div class="row">
-              <button data-cap="empty" class="cap-btn chip">Empty</button>
-              <button data-cap="few" class="cap-btn chip">Few seats</button>
-              <button data-cap="full" class="cap-btn chip">Full</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <div class="muted">Favorites</div>
-          <ul id="fav-list" class="fav-list"></ul>
-        </div>
-
-        <div class="card small muted" style="margin-top:12px">
-          Active: <span id="counts">-- passengers · -- drivers</span>
-        </div>
-
-        <div style="margin-top:12px">
-          <button id="panic" class="danger full">⚠️ SOS — Panic</button>
-        </div>
-      </section>
-    </aside>
-
-    <!-- Map -->
-    <section id="map-area">
-      <div id="map"></div>
-
-      <!-- floating small controls -->
-      <div class="floating-controls">
-        <button id="locate" class="circle">📍</button>
-        <button id="toggle-panel" class="circle">🧭</button>
+      <div class="hero-actions">
+        <a href="dashboard.html" class="primary large">Open Search (Sign in & start)</a>
+        <a href="verify.html" class="ghost">Why verify?</a>
       </div>
+
+      <ul class="benefits">
+        <li>Live passenger & driver counts</li>
+        <li>Nigeria-only map and routes</li>
+        <li>Drivers set prices — passengers choose</li>
+      </ul>
+      <small class="footer-note">© Search • Built for Nigeria</small>
     </section>
   </main>
 
-  <footer class="footer muted">© YourService • Built for Nigeria • OpenStreetMap</footer>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
-  <script src="app.js"></script>
-
-<script src="map-logic.js"></script>
-<script src="script.js"></script> <!-- or app.js -->
-
-  <!-- Leaflet (Map) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Marker Cluster -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
-
-<!-- Your custom map logic file -->
-<script src="map-logic.js"></script>
-
-<!-- Your main JS logic (authentication, UI, payments, etc.) -->
-<script src="script.js"></script>
-  
+  <footer class="landing-footer">Made for Nigerian roads</footer>
 </body>
 </html>
