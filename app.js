@@ -1,32 +1,21 @@
-/* app.js
- * Frontend only: OpenStreetMap (Leaflet) + Firebase Auth + Realtime DB hooks + Paystack popup trigger.
- *
- * IMPORTANT:
- * - Do NOT put Paystack secret here (never).
- * - You must deploy a server/cloud function to verify transactions and set users/{uid}/paidDate.
- * - Replace FIREBASE_CONFIG, PAYSTACK_PUBLIC_KEY and VERIFY_PAYMENT_ENDPOINT values below.
- */
+/* app.js — Frontend UI + map integration (no secrets) */
+/* Make sure firebase-config.js is included BEFORE this file */
 
-/* ========== CONFIG - REPLACE THESE ========== */
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
-};
-const PAYSTACK_PUBLIC_KEY = "YOUR_PAYSTACK_PUBLIC_KEY"; // public only
-const VERIFY_PAYMENT_ENDPOINT = "https://YOUR_CLOUD_FUNCTION/verifyPaystack"; // server endpoint you will deploy
-/* ============================================ */
+if (!window.FIREBASE_CLIENT_CONFIG) {
+  console.error('Missing firebase client config. Add firebase-config.js with your client config.');
+} else {
+  firebase.initializeApp(window.FIREBASE_CLIENT_CONFIG);
+}
 
-/////////////////////// Firebase init (compat)
-firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 const db = firebase.database();
 
-/////////// UI nodes
+/* ====== CONFIG (replace) ====== */
+const PAYSTACK_PUBLIC_KEY = "YOUR_PAYSTACK_PUBLIC_KEY"; // safe public key
+const VERIFY_PAYMENT_ENDPOINT = "https://YOUR_BACKEND/verifyPayment"; // server verifies the paystack ref
+/* ============================== */
+
+/* UI refs */
 const btnGoogle = document.getElementById('btn-google');
 const signoutBtn = document.getElementById('signout');
 const userEmailEl = document.getElementById('user-email');
@@ -34,339 +23,232 @@ const verifyNote = document.getElementById('verify-note');
 const accessPanel = document.getElementById('access-panel');
 const accessStatus = document.getElementById('access-status');
 const payBtn = document.getElementById('pay-btn');
-const rolePassengerBtn = document.getElementById('role-passenger');
-const roleDriverBtn = document.getElementById('role-driver');
-const routeInput = document.getElementById('route-input');
+const controlsCard = document.getElementById('controls-card');
+const modePassenger = document.getElementById('mode-passenger');
+const modeDriver = document.getElementById('mode-driver');
+const pickupInput = document.getElementById('pickup-input');
+const destInput = document.getElementById('dest-input');
+const seatsInput = document.getElementById('seats-input');
 const goLiveBtn = document.getElementById('go-live');
-const saveFavBtn = document.getElementById('save-fav');
+const saveFav = document.getElementById('save-fav');
 const favList = document.getElementById('fav-list');
 const countsEl = document.getElementById('counts');
 const panicBtn = document.getElementById('panic');
 const locateBtn = document.getElementById('locate');
 const togglePanelBtn = document.getElementById('toggle-panel');
-const controlPanel = document.getElementById('control-panel');
 
-let currentRole = null;
-let currentCapacity = 'empty';
-let map, meMarker;
-let passengerMarkers = {}, driverMarkers = {};
-let watchId = null;
+let currentMode = 'passenger'; // passenger | driver
+let publishPath = null;
+let geoActive = false;
 
-/* ------------ THE MAP ------------- */
-function setupMap(){
-  if (map) return;
-  map = L.map('map', {preferCanvas:true}).setView([9.082, 8.6753], 7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // cluster group for performance
-  window.clusterGroup = L.markerClusterGroup();
-  map.addLayer(window.clusterGroup);
+/* small helpers */
+function showToast(msg, ms=2800) {
+  const t = document.createElement('div'); t.className='_toast'; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), ms);
 }
+function dateISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
-/* center on device location and set watch */
-function startGeoWatch(){
-  if (!navigator.geolocation) { alert('Geolocation not available'); return; }
-  if (watchId) return;
-  watchId = navigator.geolocation.watchPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    if (!meMarker) {
-      meMarker = L.circleMarker([lat,lng], {radius:8, color:'#0b63ff', fillColor:'#9ed1ff', fillOpacity:0.9}).addTo(map).bindPopup('You');
-    } else {
-      meMarker.setLatLng([lat,lng]);
-    }
-    map.setView([lat,lng], 14);
+/* ensure map */
+if (window.setupMap) window.setupMap();
 
-    // if user is signed in and role selected and access granted, update DB
-    const u = auth.currentUser;
-    if (!u) return;
-    if (!currentRole) return;
-    // write to /passengersByUser or /driversByUser keyed by uid
-    const node = (currentRole === 'passenger') ? 'passengersByUser' : 'driversByUser';
-    db.ref(`${node}/${u.uid}`).set({
-      lat, lng, direction: routeInput.value || '', capacity: currentCapacity, ts: Date.now()
-    });
-  }, err => {
-    console.warn('geo error', err);
-  }, { enableHighAccuracy:true, maximumAge:3000, timeout:8000 });
-}
-
-/* stop watch and remove DB entry */
-async function stopPublishing(){
-  if (watchId) navigator.geolocation.clearWatch(watchId);
-  watchId = null;
-  const u = auth.currentUser;
-  if (!u) return;
-  if (currentRole) {
-    const node = (currentRole === 'passenger') ? 'passengersByUser' : 'driversByUser';
-    await db.ref(`${node}/${u.uid}`).remove();
-  }
-}
-
-/* cleanup markers */
-function clearMarkers(){
-  Object.values(passengerMarkers).forEach(m => map.removeLayer(m));
-  Object.values(driverMarkers).forEach(m => map.removeLayer(m));
-  passengerMarkers = {}; driverMarkers = {};
-}
-
-/* live listeners */
-function setupLiveListeners(){
-  // passengers
-  db.ref('passengersByUser').on('value', snap => {
-    const all = snap.val() || {};
-    countsEl.textContent = `${Object.keys(all).length} passengers · ${Object.keys(driverMarkers).length} drivers`;
-    // update markers
-    // remove old
-    Object.keys(passengerMarkers).forEach(k => {
-      if (!all[k]) { map.removeLayer(passengerMarkers[k]); delete passengerMarkers[k]; }
-    });
-    Object.keys(all).forEach(k => {
-      const d = all[k];
-      if (!d || !d.lat) return;
-      if (passengerMarkers[k]) passengerMarkers[k].setLatLng([d.lat,d.lng]);
-      else {
-        const mark = L.marker([d.lat,d.lng], {icon: L.divIcon({className:'picon', html:`<div class="pin pin-pass">P</div>`})}).addTo(map);
-        passengerMarkers[k] = mark;
-      }
-    });
-  });
-
-  // drivers
-  db.ref('driversByUser').on('value', snap => {
-    const all = snap.val() || {};
-    countsEl.textContent = `${Object.keys(passengerMarkers).length} passengers · ${Object.keys(all).length} drivers`;
-    Object.keys(driverMarkers).forEach(k => {
-      if (!all[k]) { map.removeLayer(driverMarkers[k]); delete driverMarkers[k]; }
-    });
-    Object.keys(all).forEach(k => {
-      const d = all[k];
-      if (!d || !d.lat) return;
-      if (driverMarkers[k]) driverMarkers[k].setLatLng([d.lat,d.lng]);
-      else {
-        const mark = L.marker([d.lat,d.lng], {icon: L.divIcon({className:'picon', html:`<div class="pin pin-driver">D</div>`})}).addTo(map);
-        driverMarkers[k] = mark;
-      }
-    });
-  });
-}
-
-/* ========== AUTH ============ */
-btnGoogle.addEventListener('click', async () => {
+/* AUTH flows */
+btnGoogle && btnGoogle.addEventListener('click', async ()=> {
   const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  try {
-    await auth.signInWithPopup(provider);
-  } catch (e) {
-    console.error('signin err', e);
-    alert('Sign in failed');
-  }
+  provider.setCustomParameters({prompt:'select_account'});
+  try { await auth.signInWithPopup(provider); } catch(e){ console.error(e); showToast('Google signin failed'); }
 });
 
-signoutBtn.addEventListener('click', async () => {
+signoutBtn && signoutBtn.addEventListener('click', async ()=> {
   await auth.signOut();
-  // UI cleanup
-  accessPanel.style.display = 'none';
-  userEmailEl.textContent = '';
-  clearMarkers();
-  stopPublishing();
+  showToast('Signed out');
+  if (window.stopGeoWatch) window.stopGeoWatch(true);
+  accessPanel.style.display='none';
+  controlsCard.style.display='none';
 });
 
-auth.onAuthStateChanged(async (user) => {
-  setupMap();
+/* on change */
+auth.onAuthStateChanged(async user => {
   if (user) {
-    userEmailEl.textContent = user.email;
-    signoutBtn.style.display = 'inline-block';
+    userEmailEl.textContent = user.email || user.displayName;
+    signoutBtn.style.display='inline-block';
+    accessPanel.style.display='block';
 
-    // Show access panel but enforce emailVerified
-    accessPanel.style.display = 'block';
     if (!user.emailVerified) {
-      verifyNote.style.display = 'block';
-      accessStatus.textContent = 'Email not verified. Please check your inbox.';
-      // send verification email (safe to call)
-      try { await user.sendEmailVerification(); } catch(e){ console.warn('verif send err', e); }
+      verifyNote.style.display='block';
+      accessStatus.textContent = 'Email not verified. Verification email sent.';
+      try { await user.sendEmailVerification(); } catch(e){ console.warn(e); }
+      controlsCard.style.display='none';
       return;
     } else {
-      verifyNote.style.display = 'none';
-      // check DB for paidDate
-      const snap = await db.ref(`users/${user.uid}`).once('value');
-      const u = snap.val() || {};
-      const paidDate = u.paidDate || null;
-      const today = dateISO();
-      if (paidDate === today) {
-        accessStatus.textContent = `Access active for ${today}`;
-        // allow map & listeners
-        setupLiveListeners();
-        startGeoWatch();
-      } else {
-        accessStatus.textContent = `No access for ${today}. Please pay ₦100.`;
-        // Still allow map view but block publishing until pay
-        clearMarkers();
-        stopPublishing();
-      }
+      verifyNote.style.display='none';
     }
 
-    // load favorites
+    /* check paid status */
+    const snap = await db.ref(`users/${user.uid}`).once('value');
+    const u = snap.val() || {};
+    if (u.paidDate === dateISO()) {
+      accessStatus.textContent = `Access active for ${dateISO()}`;
+      controlsCard.style.display='block';
+      startLiveListeners();
+    } else {
+      accessStatus.textContent = `No access for ${dateISO()}. Please pay ₦100.`;
+      controlsCard.style.display='none';
+    }
     loadFavorites();
   } else {
-    userEmailEl.textContent = '';
-    signoutBtn.style.display = 'none';
-    accessPanel.style.display = 'none';
-    verifyNote.style.display = 'none';
+    userEmailEl.textContent='';
+    signoutBtn.style.display='none';
+    accessPanel.style.display='none';
+    controlsCard.style.display='none';
   }
 });
 
-/* ========== PAYMENTS ========== */
-payBtn.addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return alert('Sign in first');
-  if (!user.emailVerified) return alert('Verify email first');
+/* PAYSTACK pay flow (frontend triggers inline) */
+payBtn && payBtn.addEventListener('click', async ()=> {
+  const user = auth.currentUser; if (!user) return showToast('Sign in first');
+  if (!user.emailVerified) return showToast('Verify email first');
+  if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK')) { showToast('Paystack key not configured'); return; }
 
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
     email: user.email,
-    amount: 100 * 100, // kobo
+    amount: 100 * 100,
     currency: 'NGN',
-    ref: 'NRTR_' + user.uid + '_' + Date.now(),
-    callback: function(resp){
-      // call server to verify (must be server side)
-      verifyOnServer(resp.reference, user.uid)
-        .then(ok => {
-          if (ok) {
-            accessStatus.textContent = `Access active for ${dateISO()}`;
-            setupLiveListeners();
-            startGeoWatch();
-            alert('Payment verified. Enjoy the service today.');
-          } else {
-            alert('Payment verification failed. Contact support.');
-          }
-        }).catch(err => {
-          console.error(err);
-          alert('Verification error. Try later.');
+    ref: 'SEARCH_' + user.uid + '_' + Date.now(),
+    callback: async function(resp) {
+      showToast('Verifying payment...');
+      try {
+        // call secure backend to verify the Paystack reference
+        const res = await fetch(VERIFY_PAYMENT_ENDPOINT, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ reference: resp.reference, uid: user.uid })
         });
+        const j = await res.json();
+        if (j && j.status === 'success') {
+          showToast('Payment verified — access granted for today.');
+          accessStatus.textContent = `Access active for ${dateISO()}`;
+          controlsCard.style.display = 'block';
+        } else {
+          showToast('Payment verification failed.');
+        }
+      } catch(e){
+        console.error(e); showToast('Verification server error');
+      }
     },
-    onClose: function(){ console.log('payment closed'); }
+    onClose: function(){ showToast('Payment closed'); }
   });
   handler.openIframe();
 });
 
-/* Verify on server (frontend calls your secure endpoint that uses Paystack secret) */
-async function verifyOnServer(reference, uid){
-  if (!VERIFY_PAYMENT_ENDPOINT || VERIFY_PAYMENT_ENDPOINT.includes('YOUR_CLOUD_FUNCTION')) {
-    alert('Payment verification endpoint not configured. Please deploy server verify function and set VERIFY_PAYMENT_ENDPOINT.');
-    return false;
-  }
-  try {
-    const res = await fetch(VERIFY_PAYMENT_ENDPOINT, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ reference, uid })
-    });
-    if (!res.ok) return false;
-    const j = await res.json();
-    return j.status === 'success';
-  } catch(e){ console.error(e); return false; }
-}
-
-/* ========== PUBLISHING ACTIONS ========== */
-rolePassengerBtn.addEventListener('click', ()=> { currentRole='passenger'; showToast('Role: Passenger'); });
-roleDriverBtn.addEventListener('click', ()=> { currentRole='driver'; showToast('Role: Driver'); });
-
-document.querySelectorAll('.cap-btn').forEach(b => b.addEventListener('click', (e)=> {
-  currentCapacity = e.currentTarget.dataset.cap;
-  showToast('Capacity: ' + currentCapacity);
-}));
-
-goLiveBtn.addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return alert('Sign in first');
-  // check paidDate again
-  const snap = await db.ref(`users/${user.uid}`).once('value');
-  const u = snap.val() || {};
-  if (u.paidDate !== dateISO()) return alert('Please pay ₦100 for today to publish your location.');
-
-  if (!currentRole) return alert('Select role first');
-  // start watching position (will auto-push to DB)
-  startGeoWatch();
-  showToast('Publishing location live — stay safe.');
-});
+/* Mode switching */
+modePassenger && modePassenger.addEventListener('click', ()=> { currentMode='passenger'; showToast('Passenger mode'); });
+modeDriver && modeDriver.addEventListener('click', ()=> { currentMode='driver'; showToast('Driver mode'); });
 
 /* save favorite */
-saveFavBtn.addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return alert('Sign in first');
-  const v = routeInput.value.trim();
-  if (!v) return alert('Type a route name');
-  await db.ref(`users/${user.uid}/favorites`).push({ name:v, ts:Date.now() });
+saveFav && saveFav.addEventListener('click', async ()=> {
+  const user = auth.currentUser; if (!user) return showToast('Sign in first');
+  const name = destInput.value.trim(); if (!name) return showToast('Type a destination');
+  await db.ref(`users/${user.uid}/favorites`).push({ name, ts: Date.now()});
   showToast('Saved favorite');
   loadFavorites();
 });
-
-async function loadFavorites(){
-  const user = auth.currentUser;
-  if (!user) return;
-  const snap = await db.ref(`users/${user.uid}/favorites`).once('value');
-  const obj = snap.val() || {};
+async function loadFavorites() {
+  const user = auth.currentUser; if (!user) return;
+  const snap = await db.ref(`users/${user.uid}/favorites`).once('value'); const obj = snap.val() || {};
   favList.innerHTML = '';
   Object.keys(obj).forEach(k => {
-    const li = document.createElement('li');
-    li.textContent = obj[k].name;
-    li.className = 'fav-item';
-    li.addEventListener('click', ()=> { routeInput.value = obj[k].name; });
+    const li = document.createElement('li'); li.textContent = obj[k].name; li.addEventListener('click', ()=> { destInput.value=obj[k].name; showToast('Selected'); });
     favList.appendChild(li);
   });
 }
 
-/* panic */
-panicBtn.addEventListener('click', async () => {
-  const user = auth.currentUser;
-  if (!user) return alert('Sign in first');
-  if (!confirm('Send SOS to admin with your location?')) return;
-  if (!navigator.geolocation) return alert('Geolocation not available');
+/* Publish location (driver or passenger) */
+goLiveBtn && goLiveBtn.addEventListener('click', async ()=> {
+  const user = auth.currentUser; if (!user) return showToast('Sign in first');
+  const snap = await db.ref(`users/${user.uid}`).once('value'); const u = snap.val() || {};
+  if (u.paidDate !== dateISO()) return showToast('Please pay ₦100 today to publish.');
+  // require geolocation
+  if (!navigator.geolocation) return showToast('Geolocation not available');
+  // get current position once first then start watch
   navigator.geolocation.getCurrentPosition(async pos => {
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    await db.ref('adminAlerts').push({ uid:user.uid, email:user.email, lat, lng, ts:Date.now() });
-    alert('SOS sent to admin.');
-  }, err => alert('Unable to get location'));
+    // confirm within Nigeria bounds (rough)
+    if (lat < 3 || lat > 14 || lng < 2 || lng > 15) return showToast('Your location is outside Nigeria bounds.');
+    // build payload
+    const payload = {
+      lat, lng,
+      direction: destInput.value || '',
+      seats: parseInt(seatsInput.value || '0', 10),
+      mode: currentMode,
+      ts: Date.now()
+    };
+    // write to DB path depending on mode
+    const path = (currentMode === 'passenger') ? `passengersByUser/${user.uid}` : `driversByUser/${user.uid}`;
+    try {
+      await db.ref(path).set(payload);
+      // start watch updates for live movement (map-logic dispatches map-geo-update)
+      if (window.startGeoWatch) { window.startGeoWatch(); geoActive=true; }
+      publishPath = path;
+      showToast('Publishing location live');
+    } catch(e) { console.error(e); showToast('Could not publish'); }
+  }, err => { console.error(err); showToast('Location denied or unavailable'); }, { enableHighAccuracy:true, timeout:8000 });
 });
 
-/* helper: date ISO y-m-d (client) */
-function dateISO(){
-  const dt = new Date();
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  const d = String(dt.getDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
+/* Listen for geo events from map-logic and update DB for smooth moves */
+window.addEventListener('map-geo-update', async ev => {
+  if (!auth.currentUser) return;
+  if (!publishPath) return;
+  const d = ev.detail;
+  try {
+    await db.ref(publishPath).update({ lat: d.lat, lng: d.lng, ts: Date.now() });
+  } catch(e){ console.error(e); }
+});
+
+/* stop publish */
+async function clearPublish() {
+  if (!auth.currentUser) return;
+  try {
+    await db.ref(`passengersByUser/${auth.currentUser.uid}`).remove();
+    await db.ref(`driversByUser/${auth.currentUser.uid}`).remove();
+  } catch(e){ console.warn(e); }
+  if (window.stopGeoWatch) window.stopGeoWatch(true);
+  publishPath = null;
 }
 
-/* small toast */
-function showToast(msg){
-  console.log(msg);
-  // quick UI hint (simple)
-  const el = document.createElement('div');
-  el.textContent = msg;
-  el.style.position='fixed'; el.style.bottom='100px'; el.style.left='50%'; el.style.transform='translateX(-50%)';
-  el.style.background='rgba(0,0,0,0.8)'; el.style.color='white'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.zIndex=99999;
-  document.body.appendChild(el);
-  setTimeout(()=> el.remove(),2500);
+/* Live listeners to show markers */
+function startLiveListeners(){
+  db.ref('passengersByUser').on('value', snap => {
+    const obj = snap.val() || {};
+    if (window.updateMarkersFromSnapshot) window.updateMarkersFromSnapshot('passengersByUser', obj, 'passenger');
+    countsEl.textContent = `${Object.keys(obj).length} passengers · -- drivers`;
+  });
+  db.ref('driversByUser').on('value', snap => {
+    const obj = snap.val() || {};
+    if (window.updateMarkersFromSnapshot) window.updateMarkersFromSnapshot('driversByUser', obj, 'driver');
+    db.ref('passengersByUser').once('value').then(s => {
+      const p = s.val() || {};
+      countsEl.textContent = `${Object.keys(p).length} passengers · ${Object.keys(obj).length} drivers`;
+    });
+  });
 }
 
-/* toggle panel (mobile) */
-togglePanelBtn.addEventListener('click', ()=> {
-  if (controlPanel.style.display==='none' || !controlPanel.style.display) controlPanel.style.display = 'block';
-  else controlPanel.style.display = 'none';
-});
-locateBtn.addEventListener('click', ()=> {
-  if (meMarker) map.setView(meMarker.getLatLng(), 15);
+/* SOS */
+panicBtn && panicBtn.addEventListener('click', ()=> {
+  const user = auth.currentUser; if (!user) return showToast('Sign in first');
+  if (!navigator.geolocation) return showToast('Geolocation not available');
+  if (!confirm('Send SOS to admin with your current location?')) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    await db.ref('adminAlerts').push({ uid: user.uid, email: user.email, lat: pos.coords.latitude, lng: pos.coords.longitude, ts: Date.now() });
+    showToast('SOS sent to admin');
+  }, ()=> showToast('Unable to get location'));
 });
 
-/* small UI init */
-setupMap();
-document.getElementById('access-panel').style.display='none';
-btnGoogle.addEventListener('click', ()=>{ document.getElementById('access-panel').style.display='block'; });
+/* UI small controls */
+togglePanelBtn && togglePanelBtn.addEventListener('click', ()=> {
+  const cp = document.getElementById('control-panel');
+  cp.style.display = (cp.style.display === 'none' || cp.style.display === '') ? 'block' : 'none';
+});
+locateBtn && locateBtn.addEventListener('click', ()=> { if (window.focusOnMe) window.focusOnMe(); });
 
-/* Setup Live DB listeners (no publishing yet) */
-setupLiveListeners();
+/* cleanup on leave */
+window.addEventListener('pagehide', ()=> { if (window.stopGeoWatch) window.stopGeoWatch(true); });
