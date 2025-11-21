@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>SEARCH — Choose mode</title>
+  <title>SEARCH — Choose role</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body class="role-body">
@@ -32,13 +32,14 @@
   </main>
 
 <script>
-  // save mode once and go to dashboard
   document.getElementById('choose-passenger').addEventListener('click', () => {
     localStorage.setItem('search_mode', 'passenger');
+    localStorage.setItem('hasChosenMode', 'true');
     location.href = 'dashboard.html';
   });
   document.getElementById('choose-driver').addEventListener('click', () => {
     localStorage.setItem('search_mode', 'driver');
+    localStorage.setItem('hasChosenMode', 'true');
     location.href = 'dashboard.html';
   });
 </script>
