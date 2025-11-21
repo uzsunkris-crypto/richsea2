@@ -11,7 +11,7 @@
       </div>
 
       <div style="margin-top:12px">
-        <div class="small muted">What went well (optional)</div>
+        <div class="small muted">Choose tags that apply (optional)</div>
         <div class="row" style="margin-top:8px">
           <button class="tag-btn chip">Polite</button>
           <button class="tag-btn chip">Good price</button>
@@ -24,21 +24,21 @@
   </main>
 
 <script>
-  // minimal demo handler
   let rating = 5;
   const starRow = document.getElementById('star-row');
-  function renderStars(n) {
-    starRow.textContent = Array(6).join('☆ ').trim();
-    const stars = Array(n).fill('★').join(' ');
-    starRow.textContent = stars + (n < 5 ? ' ' + Array(6-n).join('☆ ').trim() : '');
+  function renderStars(n){
+    const full = '★ '.repeat(n).trim();
+    const empty = '☆ '.repeat(5-n).trim();
+    starRow.textContent = (full + (empty ? ' ' + empty : '')).trim();
   }
-  starRow.addEventListener('click', (e)=> {
-    // simple toggle - count click position
-    rating = rating === 5 ? 4 : 5;
-    renderStars(rating);
-  });
   renderStars(5);
-  document.getElementById('submit-rate').addEventListener('click', ()=> { alert('Thanks — rating saved (demo)'); location.href='dashboard.html'; });
+  starRow.addEventListener('click', ()=>{
+    rating = rating === 5 ? 4 : 5; renderStars(rating);
+  });
+  document.getElementById('submit-rate').addEventListener('click', ()=> {
+    alert('Thanks — rating saved (demo)');
+    location.href='dashboard.html';
+  });
 </script>
 </body>
 </html>
