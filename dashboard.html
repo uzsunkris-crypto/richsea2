@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Search — Live Map</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left"><div class="brand">SEARCH</div><div class="tag">Nigeria</div></div>
+    <div class="topbar-right">
+      <div id="user-email" class="muted small"></div>
+      <button id="signout" class="ghost" style="display:none">Sign out</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="panel" id="control-panel">
+      <div class="panel-inner">
+        <section id="auth-panel" class="card">
+          <h3>Welcome</h3>
+          <p class="muted small">Sign in with Google</p>
+          <button id="btn-google" class="primary full">Continue with Google</button>
+          <div id="verify-note" class="small muted" style="display:none">Please verify your email.</div>
+        </section>
+
+        <section id="access-panel" class="card" style="display:none">
+          <div id="access-status" class="status">No access for today</div>
+          <p class="small muted">Pay ₦100 for the current date to unlock the map (expires midnight).</p>
+          <div style="margin-top:10px"><button id="pay-btn" class="primary full">Pay ₦100 for Today</button></div>
+        </section>
+
+        <section class="card" id="controls-card" style="display:none">
+          <label class="label">Mode</label>
+          <div class="row">
+            <button id="mode-passenger" class="chip">Passenger</button>
+            <button id="mode-driver" class="chip">Driver</button>
+          </div>
+
+          <label class="label" style="margin-top:12px">Pickup</label>
+          <input id="pickup-input" placeholder="Where are you now?" />
+
+          <label class="label" style="margin-top:12px">Destination</label>
+          <input id="dest-input" placeholder="Where are you going?" />
+
+          <div style="margin-top:10px" class="row">
+            <button id="save-fav" class="ghost">Save</button>
+            <button id="search-route" class="primary">Find Drivers</button>
+          </div>
+
+          <label class="label" style="margin-top:12px">Seats (drivers)</label>
+          <input id="seats-input" type="number" min="0" max="14" placeholder="Seats available (0-14)" />
+
+          <div style="margin-top:12px"><button id="go-live" class="primary full">Publish my location</button></div>
+        </section>
+
+        <section class="card" style="margin-top:12px"><div class="muted">Favorites</div><ul id="fav-list" class="fav-list"></ul></section>
+
+        <section class="card" style="margin-top:12px">Active: <span id="counts">-- passengers · -- drivers</span></section>
+
+        <section style="margin-top:12px"><button id="panic" class="danger full">⚠️ SOS — Panic</button></section>
+      </div>
+    </aside>
+
+    <section id="map-area">
+      <div id="map"></div>
+      <div class="floating-controls">
+        <button id="locate" class="circle" title="Center on me">📍</button>
+        <button id="toggle-panel" class="circle" title="Show / Hide controls">🧭</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer muted">© Search • Built for Nigeria</footer>
+
+  <!-- scripts (order matters) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster-src.js"></script>
+
+  <script src="map-logic.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // register service worker for push (if supported)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(()=> console.log('SW registered'));
+    }
+  </script>
+</body>
+</html>
