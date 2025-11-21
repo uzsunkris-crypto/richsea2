@@ -3,34 +3,44 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Search — Know who's going your way</title>
+  <title>SEARCH — Choose mode</title>
   <link rel="stylesheet" href="styles.css"/>
-  <link rel="manifest" href="manifest.json" />
 </head>
-<body class="landing-body">
-  <header class="landing-header">
-    <div class="brand">SEARCH</div>
-  </header>
+<body class="role-body">
+  <main class="role-card">
+    <div class="brand-big">SEARCH</div>
+    <h1 class="role-title">Welcome — Choose your role</h1>
+    <p class="muted">Pick a mode now. You can change it anytime from the top toggle.</p>
 
-  <main class="landing-main">
-    <section class="hero card">
-      <h1 class="hero-title">Search — Know who's going your way</h1>
-      <p class="hero-sub">Real-time bus & driver info across Nigeria — choose drivers, save time, stay safe.</p>
+    <div class="role-grid">
+      <button id="choose-passenger" class="role-btn passenger">
+        <div class="emoji">🧍</div>
+        <div class="label">Passenger</div>
+        <small>Find drivers heading your way</small>
+      </button>
 
-      <div class="hero-actions">
-        <a href="dashboard.html" class="primary large">Open Search (Sign in & start)</a>
-        <a href="verify.html" class="ghost">Why verify?</a>
-      </div>
+      <button id="choose-driver" class="role-btn driver">
+        <div class="emoji">🚐</div>
+        <div class="label">Driver</div>
+        <small>Publish your route & see passengers</small>
+      </button>
+    </div>
 
-      <ul class="benefits">
-        <li>Live passenger & driver counts</li>
-        <li>Nigeria-only map and routes</li>
-        <li>Drivers set prices — passengers choose</li>
-      </ul>
-      <small class="footer-note">© Search • Built for Nigeria</small>
-    </section>
+    <div class="foot-note">
+      <a href="login.html" class="ghost small">Already have an account? (demo)</a>
+    </div>
   </main>
 
-  <footer class="landing-footer">Made for Nigerian roads</footer>
+<script>
+  // save mode once and go to dashboard
+  document.getElementById('choose-passenger').addEventListener('click', () => {
+    localStorage.setItem('search_mode', 'passenger');
+    location.href = 'dashboard.html';
+  });
+  document.getElementById('choose-driver').addEventListener('click', () => {
+    localStorage.setItem('search_mode', 'driver');
+    location.href = 'dashboard.html';
+  });
+</script>
 </body>
 </html>
