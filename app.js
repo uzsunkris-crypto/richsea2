@@ -1,254 +1,202 @@
-/* app.js — Frontend UI + map integration (no secrets) */
-/* Make sure firebase-config.js is included BEFORE this file */
+/* app.js — frontend controller (demo-ready). No backend secrets here. */
 
-if (!window.FIREBASE_CLIENT_CONFIG) {
-  console.error('Missing firebase client config. Add firebase-config.js with your client config.');
+/* ---------- UTIL ---------- */
+function q(id){return document.getElementById(id)}
+function el(tag, cls){const e=document.createElement(tag); if(cls) e.className=cls; return e;}
+function distanceKm(a,b){
+  const R=6371; const toRad=(x)=>x*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat); const dLon=toRad(b.lng-a.lng);
+  const A=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLon/2)*Math.sin(dLon/2);
+  const C=2*Math.atan2(Math.sqrt(A), Math.sqrt(1-A));
+  return R*C;
+}
+
+/* ---------- MODE INIT ---------- */
+let mode = localStorage.getItem('search_mode') || null;
+if (!mode) {
+  location.href = 'index.html';
 } else {
-  firebase.initializeApp(window.FIREBASE_CLIENT_CONFIG);
-}
+  document.addEventListener('DOMContentLoaded', ()=> {
+    const togglePass = q('toggle-pass'), toggleDrive = q('toggle-drive');
 
-const auth = firebase.auth();
-const db = firebase.database();
-
-/* ====== CONFIG (replace) ====== */
-const PAYSTACK_PUBLIC_KEY = "YOUR_PAYSTACK_PUBLIC_KEY"; // safe public key
-const VERIFY_PAYMENT_ENDPOINT = "https://YOUR_BACKEND/verifyPayment"; // server verifies the paystack ref
-/* ============================== */
-
-/* UI refs */
-const btnGoogle = document.getElementById('btn-google');
-const signoutBtn = document.getElementById('signout');
-const userEmailEl = document.getElementById('user-email');
-const verifyNote = document.getElementById('verify-note');
-const accessPanel = document.getElementById('access-panel');
-const accessStatus = document.getElementById('access-status');
-const payBtn = document.getElementById('pay-btn');
-const controlsCard = document.getElementById('controls-card');
-const modePassenger = document.getElementById('mode-passenger');
-const modeDriver = document.getElementById('mode-driver');
-const pickupInput = document.getElementById('pickup-input');
-const destInput = document.getElementById('dest-input');
-const seatsInput = document.getElementById('seats-input');
-const goLiveBtn = document.getElementById('go-live');
-const saveFav = document.getElementById('save-fav');
-const favList = document.getElementById('fav-list');
-const countsEl = document.getElementById('counts');
-const panicBtn = document.getElementById('panic');
-const locateBtn = document.getElementById('locate');
-const togglePanelBtn = document.getElementById('toggle-panel');
-
-let currentMode = 'passenger'; // passenger | driver
-let publishPath = null;
-let geoActive = false;
-
-/* small helpers */
-function showToast(msg, ms=2800) {
-  const t = document.createElement('div'); t.className='_toast'; t.textContent=msg; document.body.appendChild(t);
-  setTimeout(()=>t.remove(), ms);
-}
-function dateISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-
-/* ensure map */
-if (window.setupMap) window.setupMap();
-
-/* AUTH flows */
-btnGoogle && btnGoogle.addEventListener('click', async ()=> {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({prompt:'select_account'});
-  try { await auth.signInWithPopup(provider); } catch(e){ console.error(e); showToast('Google signin failed'); }
-});
-
-signoutBtn && signoutBtn.addEventListener('click', async ()=> {
-  await auth.signOut();
-  showToast('Signed out');
-  if (window.stopGeoWatch) window.stopGeoWatch(true);
-  accessPanel.style.display='none';
-  controlsCard.style.display='none';
-});
-
-/* on change */
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    userEmailEl.textContent = user.email || user.displayName;
-    signoutBtn.style.display='inline-block';
-    accessPanel.style.display='block';
-
-    if (!user.emailVerified) {
-      verifyNote.style.display='block';
-      accessStatus.textContent = 'Email not verified. Verification email sent.';
-      try { await user.sendEmailVerification(); } catch(e){ console.warn(e); }
-      controlsCard.style.display='none';
-      return;
-    } else {
-      verifyNote.style.display='none';
-    }
-
-    /* check paid status */
-    const snap = await db.ref(`users/${user.uid}`).once('value');
-    const u = snap.val() || {};
-    if (u.paidDate === dateISO()) {
-      accessStatus.textContent = `Access active for ${dateISO()}`;
-      controlsCard.style.display='block';
-      startLiveListeners();
-    } else {
-      accessStatus.textContent = `No access for ${dateISO()}. Please pay ₦100.`;
-      controlsCard.style.display='none';
-    }
-    loadFavorites();
-  } else {
-    userEmailEl.textContent='';
-    signoutBtn.style.display='none';
-    accessPanel.style.display='none';
-    controlsCard.style.display='none';
-  }
-});
-
-/* PAYSTACK pay flow (frontend triggers inline) */
-payBtn && payBtn.addEventListener('click', async ()=> {
-  const user = auth.currentUser; if (!user) return showToast('Sign in first');
-  if (!user.emailVerified) return showToast('Verify email first');
-  if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK')) { showToast('Paystack key not configured'); return; }
-
-  const handler = PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email: user.email,
-    amount: 100 * 100,
-    currency: 'NGN',
-    ref: 'SEARCH_' + user.uid + '_' + Date.now(),
-    callback: async function(resp) {
-      showToast('Verifying payment...');
-      try {
-        // call secure backend to verify the Paystack reference
-        const res = await fetch(VERIFY_PAYMENT_ENDPOINT, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ reference: resp.reference, uid: user.uid })
-        });
-        const j = await res.json();
-        if (j && j.status === 'success') {
-          showToast('Payment verified — access granted for today.');
-          accessStatus.textContent = `Access active for ${dateISO()}`;
-          controlsCard.style.display = 'block';
-        } else {
-          showToast('Payment verification failed.');
-        }
-      } catch(e){
-        console.error(e); showToast('Verification server error');
+    const setActiveHeader = (m)=> {
+      if(m==='passenger'){ 
+        togglePass.classList.add('active'); 
+        toggleDrive.classList.remove('active'); 
       }
-    },
-    onClose: function(){ showToast('Payment closed'); }
-  });
-  handler.openIframe();
-});
-
-/* Mode switching */
-modePassenger && modePassenger.addEventListener('click', ()=> { currentMode='passenger'; showToast('Passenger mode'); });
-modeDriver && modeDriver.addEventListener('click', ()=> { currentMode='driver'; showToast('Driver mode'); });
-
-/* save favorite */
-saveFav && saveFav.addEventListener('click', async ()=> {
-  const user = auth.currentUser; if (!user) return showToast('Sign in first');
-  const name = destInput.value.trim(); if (!name) return showToast('Type a destination');
-  await db.ref(`users/${user.uid}/favorites`).push({ name, ts: Date.now()});
-  showToast('Saved favorite');
-  loadFavorites();
-});
-async function loadFavorites() {
-  const user = auth.currentUser; if (!user) return;
-  const snap = await db.ref(`users/${user.uid}/favorites`).once('value'); const obj = snap.val() || {};
-  favList.innerHTML = '';
-  Object.keys(obj).forEach(k => {
-    const li = document.createElement('li'); li.textContent = obj[k].name; li.addEventListener('click', ()=> { destInput.value=obj[k].name; showToast('Selected'); });
-    favList.appendChild(li);
-  });
-}
-
-/* Publish location (driver or passenger) */
-goLiveBtn && goLiveBtn.addEventListener('click', async ()=> {
-  const user = auth.currentUser; if (!user) return showToast('Sign in first');
-  const snap = await db.ref(`users/${user.uid}`).once('value'); const u = snap.val() || {};
-  if (u.paidDate !== dateISO()) return showToast('Please pay ₦100 today to publish.');
-  // require geolocation
-  if (!navigator.geolocation) return showToast('Geolocation not available');
-  // get current position once first then start watch
-  navigator.geolocation.getCurrentPosition(async pos => {
-    const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    // confirm within Nigeria bounds (rough)
-    if (lat < 3 || lat > 14 || lng < 2 || lng > 15) return showToast('Your location is outside Nigeria bounds.');
-    // build payload
-    const payload = {
-      lat, lng,
-      direction: destInput.value || '',
-      seats: parseInt(seatsInput.value || '0', 10),
-      mode: currentMode,
-      ts: Date.now()
+      else { 
+        toggleDrive.classList.add('active'); 
+        togglePass.classList.remove('active'); 
+      }
     };
-    // write to DB path depending on mode
-    const path = (currentMode === 'passenger') ? `passengersByUser/${user.uid}` : `driversByUser/${user.uid}`;
-    try {
-      await db.ref(path).set(payload);
-      // start watch updates for live movement (map-logic dispatches map-geo-update)
-      if (window.startGeoWatch) { window.startGeoWatch(); geoActive=true; }
-      publishPath = path;
-      showToast('Publishing location live');
-    } catch(e) { console.error(e); showToast('Could not publish'); }
-  }, err => { console.error(err); showToast('Location denied or unavailable'); }, { enableHighAccuracy:true, timeout:8000 });
-});
 
-/* Listen for geo events from map-logic and update DB for smooth moves */
-window.addEventListener('map-geo-update', async ev => {
-  if (!auth.currentUser) return;
-  if (!publishPath) return;
-  const d = ev.detail;
-  try {
-    await db.ref(publishPath).update({ lat: d.lat, lng: d.lng, ts: Date.now() });
-  } catch(e){ console.error(e); }
-});
+    setActiveHeader(mode);
 
-/* stop publish */
-async function clearPublish() {
-  if (!auth.currentUser) return;
-  try {
-    await db.ref(`passengersByUser/${auth.currentUser.uid}`).remove();
-    await db.ref(`driversByUser/${auth.currentUser.uid}`).remove();
-  } catch(e){ console.warn(e); }
-  if (window.stopGeoWatch) window.stopGeoWatch(true);
-  publishPath = null;
-}
-
-/* Live listeners to show markers */
-function startLiveListeners(){
-  db.ref('passengersByUser').on('value', snap => {
-    const obj = snap.val() || {};
-    if (window.updateMarkersFromSnapshot) window.updateMarkersFromSnapshot('passengersByUser', obj, 'passenger');
-    countsEl.textContent = `${Object.keys(obj).length} passengers · -- drivers`;
-  });
-  db.ref('driversByUser').on('value', snap => {
-    const obj = snap.val() || {};
-    if (window.updateMarkersFromSnapshot) window.updateMarkersFromSnapshot('driversByUser', obj, 'driver');
-    db.ref('passengersByUser').once('value').then(s => {
-      const p = s.val() || {};
-      countsEl.textContent = `${Object.keys(p).length} passengers · ${Object.keys(obj).length} drivers`;
+    togglePass.addEventListener('click', ()=> {
+      mode='passenger'; 
+      localStorage.setItem('search_mode', mode); 
+      setActiveHeader(mode); 
+      adaptUI();
     });
+
+    toggleDrive.addEventListener('click', ()=> {
+      mode='driver'; 
+      localStorage.setItem('search_mode', mode); 
+      setActiveHeader(mode); 
+      adaptUI();
+    });
+
+    q('ui-mode-pass') && q('ui-mode-pass').addEventListener('click', ()=> {
+      mode='passenger'; 
+      localStorage.setItem('search_mode', mode); 
+      setActiveHeader(mode); 
+      adaptUI();
+    });
+    q('ui-mode-drive') && q('ui-mode-drive').addEventListener('click', ()=> {
+      mode='driver'; 
+      localStorage.setItem('search_mode', mode); 
+      setActiveHeader(mode); 
+      adaptUI();
+    });
+
+    q('logout').addEventListener('click', ()=> {
+      localStorage.removeItem('search_user');
+      location.href='index.html';
+    });
+
+    q('locate').addEventListener('click', ()=> { 
+      if(window.focusOnMe) window.focusOnMe(); 
+    });
+
+    q('toggle-panel').addEventListener('click', ()=> {
+      const cp = q('control-panel');
+      cp.style.display = (cp.style.display === 'none' || cp.style.display === '') ? 'block' : 'none';
+    });
+
+    q('find-btn').addEventListener('click', ()=> {
+      findDriversDemo();
+    });
+
+    q('publish-btn').addEventListener('click', ()=> {
+      publishDemo();
+    });
+
+    q('panic').addEventListener('click', ()=> {
+      if(confirm('Send demo SOS?')) alert('SOS sent (demo).');
+    });
+
+    adaptUI();
   });
 }
 
-/* SOS */
-panicBtn && panicBtn.addEventListener('click', ()=> {
-  const user = auth.currentUser; if (!user) return showToast('Sign in first');
-  if (!navigator.geolocation) return showToast('Geolocation not available');
-  if (!confirm('Send SOS to admin with your current location?')) return;
-  navigator.geolocation.getCurrentPosition(async pos => {
-    await db.ref('adminAlerts').push({ uid: user.uid, email: user.email, lat: pos.coords.latitude, lng: pos.coords.longitude, ts: Date.now() });
-    showToast('SOS sent to admin');
-  }, ()=> showToast('Unable to get location'));
+/* ---------- MAP ---------- */
+window.addEventListener('load', ()=> {
+  if (window.setupMap) window.setupMap();
+  startDemoFeeds();
 });
 
-/* UI small controls */
-togglePanelBtn && togglePanelBtn.addEventListener('click', ()=> {
-  const cp = document.getElementById('control-panel');
-  cp.style.display = (cp.style.display === 'none' || cp.style.display === '') ? 'block' : 'none';
-});
-locateBtn && locateBtn.addEventListener('click', ()=> { if (window.focusOnMe) window.focusOnMe(); });
+/* ---------- ADAPT UI BASED ON MODE ---------- */
+function adaptUI(){
+  const controls = q('controls'), driverCard = q('driver-list-card');
+  const welcomeTitle = q('welcome-title'), sub = q('sub-welcome');
 
-/* cleanup on leave */
-window.addEventListener('pagehide', ()=> { if (window.stopGeoWatch) window.stopGeoWatch(true); });
+  if (mode === 'passenger') {
+    controls.style.display='block';
+    driverCard.style.display='none';
+    welcomeTitle.textContent = 'Passenger mode';
+    sub.textContent = 'Search destination, view drivers heading your way';
+  } else {
+    controls.style.display='block';
+    driverCard.style.display='block';
+    welcomeTitle.textContent = 'Driver mode';
+    sub.textContent = 'Publish your location and set seats & price';
+  }
+
+  /* ✔️ Show Stored Demo User Name */
+  const userJson = localStorage.getItem('search_user');
+  if (userJson) {
+    const user = JSON.parse(userJson);
+    const elUser = q('user-label');
+    if (elUser) elUser.textContent = user.name || 'User';
+  }
+}
+
+/* ---------- PASSENGER DEMO: FIND DRIVERS ---------- */
+function findDriversDemo(){
+  if (!window.demoDrivers) return alert("Map not ready.");
+  const listBox = q('driver-list');
+  listBox.innerHTML = '';
+
+  const me = window.myPos || {lat:4.85, lng:7.02};
+
+  window.demoDrivers.forEach(d=>{
+    const dist = distanceKm(me, d.pos).toFixed(1);
+
+    const item = el('div','driver-item');
+    item.innerHTML = `
+      <div class="driver-name">${d.name}</div>
+      <div class="driver-meta">
+        <span>Distance: ${dist} km</span>
+      </div>
+      <button class="choose">Choose Driver</button>
+    `;
+
+    item.querySelector('.choose').addEventListener('click',()=>{
+      alert(`Driver selected: ${d.name} (demo)`);
+      if (window.followDriver) window.followDriver(d);
+    });
+
+    listBox.appendChild(item);
+  });
+
+  q('driver-list-card').style.display='block';
+}
+
+/* ---------- DRIVER DEMO: PUBLISH LOCATION ---------- */
+function publishDemo(){
+  const seats = q('seat-count').value;
+  const price = q('price-input').value;
+
+  if (!seats || !price) return alert("Enter seats & price.");
+
+  alert(`Published:\nSeats: ${seats}\nPrice: ₦${price}\n(Demo only)`);
+
+  if (window.pushDriverMarker) {
+    window.pushDriverMarker({
+      name: "You",
+      pos: window.myPos,
+      seats,
+      price
+    });
+  }
+}
+
+/* ---------- DEMO DRIVER FEEDS ---------- */
+window.demoDrivers = [];
+
+function startDemoFeeds(){
+  const sample = [
+    {name:"Lucky",    pos:{lat:4.86, lng:7.04}},
+    {name:"Promise",  pos:{lat:4.88, lng:7.02}},
+    {name:"Blessing", pos:{lat:4.87, lng:7.05}},
+    {name:"Chinedu",  pos:{lat:4.83, lng:7.03}}
+  ];
+
+  window.demoDrivers = sample;
+
+  if (window.showDemoDrivers){
+    window.showDemoDrivers(sample);
+  }
+
+  // Simulate live movement
+  setInterval(()=>{
+    window.demoDrivers.forEach(d=>{
+      d.pos.lat += (Math.random()-0.5)*0.002;
+      d.pos.lng += (Math.random()-0.5)*0.002;
+    });
+
+    if(window.updateDriverMarkers){
+      window.updateDriverMarkers(window.demoDrivers);
+    }
+  }, 4000);
+}
