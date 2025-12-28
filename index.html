@@ -3,18 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Homes - Home</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <title>Smart Homes</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- Header -->
 <header>
   <div class="logo">Smart Homes</div>
   <button id="signupBtn" class="plus-btn">+</button>
 </header>
 
-<!-- Search Bar -->
 <div class="search-container">
   <input type="text" id="searchInput" placeholder="Search whatever you want">
   <button id="categoryBtn" class="category-btn">Category</button>
@@ -22,42 +20,15 @@
   <button id="sendBtn" class="send-btn">➡️</button>
 </div>
 
-<!-- Service Grid -->
 <div class="grid-container" id="serviceGrid">
   <div class="grid-box">Plumbing</div>
   <div class="grid-box">Electrician</div>
   <div class="grid-box">Catering</div>
   <div class="grid-box">Boutique</div>
-  <div class="grid-box">Carpentry</div>
-  <div class="grid-box">Cleaning</div>
-  <div class="grid-box">Painting</div>
-  <div class="grid-box">Mechanic</div>
-  <div class="grid-box">Delivery</div>
-  <div class="grid-box">Laundry</div>
-  <div class="grid-box">Gardening</div>
-  <div class="grid-box">Fitness</div>
-  <div class="grid-box">Tutoring</div>
-  <div class="grid-box">Photography</div>
-  <div class="grid-box">Salon</div>
-  <div class="grid-box">Bakery</div>
-  <div class="grid-box">IT Services</div>
-  <div class="grid-box">Home Decor</div>
-  <div class="grid-box">Security</div>
-  <div class="grid-box">Transport</div>
-</div>
-
-<!-- Sign Up / Login Modal -->
-<div id="signupModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Sign Up / Login</h2>
-    <button>Sign Up</button>
-    <button>Login</button>
-  </div>
 </div>
 
 <script>
-  // Highlight animation
+  // Highlight boxes
   const boxes = document.querySelectorAll('.grid-box');
   const grid = document.getElementById('serviceGrid');
 
@@ -72,34 +43,6 @@
     }, 2000);
   }
   setInterval(highlightBox, 3000);
-
-  // Modal logic
-  const modal = document.getElementById("signupModal");
-  const btn = document.getElementById("signupBtn");
-  const span = document.getElementsByClassName("close")[0];
-
-  btn.onclick = function() { modal.style.display = "block"; }
-  span.onclick = function() { modal.style.display = "none"; }
-  window.onclick = function(event) {
-    if (event.target == modal) modal.style.display = "none";
-  }
-
-  // Category dropdown
-  const categoryBtn = document.getElementById('categoryBtn');
-  categoryBtn.onclick = function() { alert("Category selection simulated!"); }
-
-  // Send button → redirect simulated
-  const sendBtn = document.getElementById('sendBtn');
-  sendBtn.onclick = function() {
-    const query = document.getElementById('searchInput').value;
-    if(query) {
-      alert("Search simulated for: " + query);
-    }
-  }
-
-  // Microphone button
-  const micBtn = document.getElementById('microphoneBtn');
-  micBtn.onclick = function() { alert("Voice input simulated!"); }
 </script>
 
 </body>
