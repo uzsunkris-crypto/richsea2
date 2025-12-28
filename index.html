@@ -1,47 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>SEARCH — Choose role</title>
-  <link rel="stylesheet" href="styles.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Homes - Home</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body class="role-body">
-  <main class="role-card">
-    <div class="brand-big">SEARCH</div>
-    <h1 class="role-title">Welcome — Choose your role</h1>
-    <p class="muted">Pick a mode now. You can change it anytime from the top toggle.</p>
+<body>
 
-    <div class="role-grid">
-      <button id="choose-passenger" class="role-btn passenger">
-        <div class="emoji">🧍</div>
-        <div class="label">Passenger</div>
-        <small>Find drivers heading your way</small>
-      </button>
+<!-- Header -->
+<header>
+  <div class="logo">Smart Homes</div>
+  <button id="signupBtn" class="plus-btn">+</button>
+</header>
 
-      <button id="choose-driver" class="role-btn driver">
-        <div class="emoji">🚐</div>
-        <div class="label">Driver</div>
-        <small>Publish your route & see passengers</small>
-      </button>
-    </div>
+<!-- Search Bar -->
+<div class="search-container">
+  <input type="text" id="searchInput" placeholder="Search whatever you want">
+  <button id="categoryBtn" class="category-btn">Category</button>
+  <button id="microphoneBtn" class="microphone-btn">🎤</button>
+  <button id="sendBtn" class="send-btn">➡️</button>
+</div>
 
-    <div class="foot-note">
-      <a href="login.html" class="ghost small">Already have an account? (demo)</a>
-    </div>
-  </main>
+<!-- Service Grid -->
+<div class="grid-container" id="serviceGrid">
+  <div class="grid-box">Plumbing</div>
+  <div class="grid-box">Electrician</div>
+  <div class="grid-box">Catering</div>
+  <div class="grid-box">Boutique</div>
+  <div class="grid-box">Carpentry</div>
+  <div class="grid-box">Cleaning</div>
+  <div class="grid-box">Painting</div>
+  <div class="grid-box">Mechanic</div>
+  <div class="grid-box">Delivery</div>
+  <div class="grid-box">Laundry</div>
+  <div class="grid-box">Gardening</div>
+  <div class="grid-box">Fitness</div>
+  <div class="grid-box">Tutoring</div>
+  <div class="grid-box">Photography</div>
+  <div class="grid-box">Salon</div>
+  <div class="grid-box">Bakery</div>
+  <div class="grid-box">IT Services</div>
+  <div class="grid-box">Home Decor</div>
+  <div class="grid-box">Security</div>
+  <div class="grid-box">Transport</div>
+</div>
 
-<script>
-  document.getElementById('choose-passenger').addEventListener('click', () => {
-    localStorage.setItem('search_mode', 'passenger');
-    localStorage.setItem('hasChosenMode', 'true');
-    location.href = 'dashboard.html';
-  });
-  document.getElementById('choose-driver').addEventListener('click', () => {
-    localStorage.setItem('search_mode', 'driver');
-    localStorage.setItem('hasChosenMode', 'true');
-    location.href = 'dashboard.html';
-  });
-</script>
+<!-- Sign Up / Login Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Sign Up / Login</h2>
+    <button>Sign Up</button>
+    <button>Login</button>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
 </body>
 </html>
